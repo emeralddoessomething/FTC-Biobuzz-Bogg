@@ -1,8 +1,9 @@
 package org.firstinspires.ftc.teamcode.Utils;
 
-import com.bylazar.telemetry.JoinedTelemetry;
-import com.bylazar.telemetry.PanelsTelemetry;
+//import com.bylazar.telemetry.JoinedTelemetry;
+//import com.bylazar.telemetry.PanelsTelemetry;
 import com.pedropathing.controllers.Controller;
+import com.pedropathing.controllers.PIDController;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
 import com.pedropathing.utils.Angle;
@@ -15,19 +16,21 @@ import java.util.ArrayList;
 /**
  * Uses pedro pathing follower to calculate which hive to aim at via odometry
  */
+//@Configurable
 public class OdoHeadingLock {
-    public static double p = 0.0;
+    public static double p = 0.01;
     public static double d = 0.0;
     public static double target = 0.0; // Target heading for the controller to hit
+    private double angleError;
 
-    TransferClass.Alliance alliance;
-    Follower follower;
-    Controller controller;
+    private TransferClass.Alliance alliance;
+    private Follower follower;
+    private Controller controller;
 
-    Pose redAudience = new Pose(59.50, 55);
-    Pose redScoring = new Pose(59.50, 85);
-    Pose blueAudience = new Pose(85, 55);
-    Pose blueScoring = new Pose(85, 85);
+    private Pose redAudience = new Pose(59.50, 55);
+    private Pose redScoring = new Pose(59.50, 85);
+    private Pose blueAudience = new Pose(85, 55);
+    private Pose blueScoring = new Pose(85, 85);
 
     /**
      * Constructor. USES TRANSFER CLASS, will track all hives if no alliance is found
@@ -41,8 +44,8 @@ public class OdoHeadingLock {
         controller = Controller.pid(p, 0, d);
 
         if(alliance == null) {
-            JoinedTelemetry joinedTelemetry = new JoinedTelemetry(PanelsTelemetry.INSTANCE.getFtcTelemetry(), OpModeManager.getTelemetry());
-            joinedTelemetry.addLine(HtmlTelemetryUtil.constructString(HtmlTelemetryUtil.Size.h1, HtmlTelemetryUtil.Colors.red, "Tracking All Hives"));
+//            JoinedTelemetry joinedTelemetry = new JoinedTelemetry(PanelsTelemetry.INSTANCE.getFtcTelemetry(), OpModeManager.getTelemetry());
+//            joinedTelemetry.addLine(HtmlTelemetryUtil.constructString(HtmlTelemetryUtil.Size.h1, HtmlTelemetryUtil.Colors.red, "Tracking All Hives"));
         }
     }
 
@@ -51,7 +54,14 @@ public class OdoHeadingLock {
      * @return Value from PD controller, add to turning joystick value
      */
     public double update() {
+        if (controller instanceof PIDController) { // Change values of controller for live tuning
+            PIDController pid = (PIDController) controller;
+            pid.kP = p;
+            pid.kD = d;
+        }
+
         // odo locks onto the closest point with regard to alliance. If no alliance, then lock onto nearest regardless of alliance
+        angleError = Double.NaN;
 
         Pose toTrack = findNearestPose(alliance);
         Pose current = follower.pose();
@@ -62,13 +72,12 @@ public class OdoHeadingLock {
         // atan2 takes the distance from us to the point and returns the angle (vector) to get to it
         // Imagine two points on a 2d plane, atan2 is just the direction to travel
         double targetHeading = Math.atan2(deltaY, deltaX);
-        double rawError = targetHeading = current.heading();
+        double rawError = targetHeading - current.heading();
 
-        // Angle.normalize just takes a big radian over 180 degrees and 'normalizes' it to on angle below 180 degrees
-        // Eg. if raw error said 270 degrees normalizing it would return -90 degrees, making the robot turn 90 degrees left instead of 270 degrees right
-        double angleError = Angle.normalize(rawError);
+        // Angle.normalizeSigned normalizes the angle to [-PI, PI] (-180 to +180 degrees)
+        angleError = Math.toDegrees(Angle.normalizeSigned(rawError));
 
-        return controller.calculate(targetHeading, angleError);
+        return controller.calculate(target, angleError);
     }
 
     /**
@@ -76,24 +85,31 @@ public class OdoHeadingLock {
      * @param alliance Alliance
      * @return Nearest hive pose
      */
-    private Pose findNearestPose(TransferClass.Alliance alliance) {
+    public Pose findNearestPose(TransferClass.Alliance alliance) {
         ArrayList<Pose> possiblePoses = new ArrayList<Pose>();
 
-        switch(alliance) {
-            case RED:
-                possiblePoses.add(redAudience);
-                possiblePoses.add(redScoring);
-                break;
-            case BLUE:
-                possiblePoses.add(blueAudience);
-                possiblePoses.add(blueScoring);
-                break;
-            default:
-                possiblePoses.add(redAudience);
-                possiblePoses.add(redScoring);
-                possiblePoses.add(blueAudience);
-                possiblePoses.add(blueScoring);
-                break;
+        if(alliance != null) { // switch statements can't comprehend null and explodes cause we're on old java
+            switch (alliance) {
+                case RED:
+                    possiblePoses.add(redAudience);
+                    possiblePoses.add(redScoring);
+                    break;
+                case BLUE:
+                    possiblePoses.add(blueAudience);
+                    possiblePoses.add(blueScoring);
+                    break;
+                default:
+                    possiblePoses.add(redAudience);
+                    possiblePoses.add(redScoring);
+                    possiblePoses.add(blueAudience);
+                    possiblePoses.add(blueScoring);
+                    break;
+            }
+        } else {
+            possiblePoses.add(redAudience);
+            possiblePoses.add(redScoring);
+            possiblePoses.add(blueAudience);
+            possiblePoses.add(blueScoring);
         }
 
         Pose current = follower.pose();
@@ -117,5 +133,9 @@ public class OdoHeadingLock {
      */
     public Controller getController() {
         return controller;
+    }
+
+    public double getAngleError() {
+        return angleError;
     }
 }

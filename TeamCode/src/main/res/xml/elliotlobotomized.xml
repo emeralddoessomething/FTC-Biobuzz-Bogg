@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Robot type="FirstInspires-FTC">
+    <EthernetDevice name="limelight" serialNumber="EthernetOverUsb:eth0:172.29.0.28" port="-1" ipAddress="172.29.0.1"/>
     <LynxUsbDevice name="Control Hub Portal" serialNumber="(embedded)" parentModuleAddress="173">
         <LynxModule name="Control Hub" port="173">
             <goBILDA5201SeriesMotor name="br" port="0"/>
             <goBILDA5201SeriesMotor name="fr" port="1"/>
             <goBILDA5201SeriesMotor name="bl" port="2"/>
             <goBILDA5201SeriesMotor name="fl" port="3"/>
+            <Servo name="armLeft" port="0"/>
+            <Servo name="armRight" port="1"/>
             <AdafruitBNO055IMU name="imu" port="0" bus="0"/>
             <goBILDAPinpoint name="pinpoint" port="0" bus="1"/>
         </LynxModule>
     </LynxUsbDevice>
+    <Webcam name="webcam" serialNumber="946C2D40" />
 </Robot>
