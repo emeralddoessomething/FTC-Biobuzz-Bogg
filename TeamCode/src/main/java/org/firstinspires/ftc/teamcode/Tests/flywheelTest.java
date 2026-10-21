@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode.Tests;
 
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.telemetry.JoinedTelemetry;
+import com.bylazar.telemetry.PanelsTelemetry;
 import com.pedropathing.controllers.Controller;
 import com.pedropathing.controllers.PIDController;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -14,6 +14,8 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import org.firstinspires.ftc.teamcode.Utils.Toggle;
 
 //@Config
+
+@Configurable
 @Disabled
 @TeleOp(name = "Flywheel Test", group = "Tests")
 public class flywheelTest extends OpMode {
@@ -33,7 +35,8 @@ public class flywheelTest extends OpMode {
         flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
         flywheelController = Controller.pid(p, i, d);
 
-        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+//        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+        telemetry = new JoinedTelemetry(PanelsTelemetry.INSTANCE.getFtcTelemetry(), telemetry);
         telemetry.setMsTransmissionInterval(500);
     }
 
