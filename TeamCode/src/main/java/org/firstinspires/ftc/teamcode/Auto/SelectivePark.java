@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.Pedro.Constants;
 import org.firstinspires.ftc.teamcode.TurtleTracer.ParkingPaths;
 import org.firstinspires.ftc.teamcode.Utils.HtmlTelemetryUtil;
 
-@Autonomous
+@Autonomous(name = "Selective Park", group = "Auto")
 public class SelectivePark extends OpMode {
     private Follower follower;
     private ElapsedTime delayTimer;

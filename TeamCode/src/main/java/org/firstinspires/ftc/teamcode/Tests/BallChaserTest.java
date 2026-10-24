@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.Pedro.Constants;
 import org.firstinspires.ftc.teamcode.Utils.BallChaserUtil;
 import org.firstinspires.ftc.teamcode.Utils.PanelsFieldDrawing;
 
-@Autonomous
+@Autonomous(name = "Ball Chaser Test", group = "Tests")
 @BulkCaching
 public class BallChaserTest extends OpMode {
     Follower follower;

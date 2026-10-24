@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.SubSystems.AutoTeleOpTransfer.TransferClas
 import org.firstinspires.ftc.teamcode.Utils.OdoHeadingLock;
 
 @Disabled
-@TeleOp(name = "Odometry Heading Lock Test", group = "Test")
+@TeleOp(name = "Odometry Heading Lock Test", group = "Tests")
 public class OdoHeadingLockingTest extends OpMode {
     Follower follower;
     OdoHeadingLock odoHeadingLock;
