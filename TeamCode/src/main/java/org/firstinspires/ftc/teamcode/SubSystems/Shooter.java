@@ -45,6 +45,10 @@ public class Shooter {
         return currentRpm;
     }
 
+    public double getTargetRpm() {
+        return targetRpm;
+    }
+
     public void bumpRpm(double bumpAmount) {
         targetRpm += bumpAmount;
     }
