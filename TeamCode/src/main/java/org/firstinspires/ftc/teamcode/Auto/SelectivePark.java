@@ -36,7 +36,6 @@ public class SelectivePark extends OpMode {
     private Pose exposedBluePark = poseFactory.of(133.75, 48, 0); // todo - heading doesn't really matter
 
     private Path selectedPath;
-
     Prompter prompter = new Prompter(this);
 
     enum Alliance {

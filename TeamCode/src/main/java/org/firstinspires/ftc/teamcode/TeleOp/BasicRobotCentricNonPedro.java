@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.TeleOp;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
+//@Disabled
 @TeleOp(name = "Robot Centric Non-Pedro", group = "TeleOp")
 public class BasicRobotCentricNonPedro extends OpMode {
     DcMotor bl;
@@ -32,8 +34,8 @@ public class BasicRobotCentricNonPedro extends OpMode {
 
     @Override
     public void loop() {
-        double y = gamepad1.left_stick_y;
-        double x = -gamepad1.left_stick_x * 1.1;
+        double y = -gamepad1.left_stick_y;
+        double x = gamepad1.left_stick_x * 1.1;
         double rx = gamepad1.right_stick_x;
 
         double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);

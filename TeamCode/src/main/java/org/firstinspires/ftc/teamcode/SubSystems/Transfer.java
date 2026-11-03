@@ -8,8 +8,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class Transfer {
     Servo transferServo;
     State state = State.DOWN;
-    double upPosition = 1;
-    double downPosition = 0;
+    public static double upPosition = 0.8;
+    public static double downPosition = 0.5;
     public enum State{
         UP,
         DOWN

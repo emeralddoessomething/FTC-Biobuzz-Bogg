@@ -1,29 +1,33 @@
 package org.firstinspires.ftc.teamcode.SubSystems;
 
+import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+@Configurable
 public class Intake {
     DcMotor intake;
     DcMotor upperIntake;
     State state = State.STOP;
-    double intakePower = 1;
-    double outtakePower = -1;
+    public static double intakePower = 0.7;
+    public static double outtakePower = -0.7;
+    public static double upperIntakePower = 0.6;
+    public static double upperOuttakePower = -0.6;
     public enum State{
         INTAKE,
         OUTTAKE,
         STOP
     }
     public Intake(HardwareMap hardwareMap) {
-        String hardwareMapName = "intake";
-        DcMotorEx.Direction direction = DcMotorSimple.Direction.FORWARD;
-        DcMotorEx.ZeroPowerBehavior zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE;
+        String hardwareMapName = "lowerIntake";
+        DcMotorEx.Direction direction = DcMotorSimple.Direction.REVERSE;
+        DcMotorEx.ZeroPowerBehavior zeroPowerBehavior = DcMotor.ZeroPowerBehavior.FLOAT;
 
         String otherHardwareMapName = "upperIntake";
         DcMotorEx.Direction otherDirection = DcMotorSimple.Direction.FORWARD;
-        DcMotorEx.ZeroPowerBehavior otherZeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE;
+        DcMotorEx.ZeroPowerBehavior otherZeroPowerBehavior = DcMotor.ZeroPowerBehavior.FLOAT;
 
         intake = hardwareMap.get(DcMotorEx.class, hardwareMapName);
         intake.setDirection(direction);
@@ -38,15 +42,15 @@ public class Intake {
         switch(state) {
             case INTAKE:
                 intake.setPower(intakePower);
-                upperIntake.setPower(intakePower);
+                upperIntake.setPower(upperIntakePower);
                 break;
             case OUTTAKE:
                 intake.setPower(outtakePower);
-                upperIntake.setPower(intakePower);
+                upperIntake.setPower(upperOuttakePower);
                 break;
             case STOP:
                 intake.setPower(0);
-                upperIntake.setPower(intakePower);
+                upperIntake.setPower(0);
                 break;
         }
 

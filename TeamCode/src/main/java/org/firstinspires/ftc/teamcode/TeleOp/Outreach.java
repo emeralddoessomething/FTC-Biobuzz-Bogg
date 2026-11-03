@@ -4,6 +4,7 @@ package org.firstinspires.ftc.teamcode.TeleOp;
 import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.follower.Follower;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Blinker;
@@ -15,6 +16,7 @@ import org.firstinspires.ftc.teamcode.Pedro.Constants;
 import java.util.ArrayList;
 
 //@Config
+@Disabled
 @TeleOp(name = "Outreach", group = "TeleOp")
 public class Outreach extends OpMode {
     Follower follower;

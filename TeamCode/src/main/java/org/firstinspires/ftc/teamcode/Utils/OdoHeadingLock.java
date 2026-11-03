@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.Utils;
 
 //import com.bylazar.telemetry.JoinedTelemetry;
 //import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.controllers.Controller;
 import com.pedropathing.controllers.PIDController;
 import com.pedropathing.follower.Follower;
@@ -16,7 +17,7 @@ import java.util.ArrayList;
 /**
  * Uses pedro pathing follower to calculate which hive to aim at via odometry
  */
-//@Configurable
+@Configurable
 public class OdoHeadingLock {
     public static double p = 0.01;
     public static double d = 0.0;

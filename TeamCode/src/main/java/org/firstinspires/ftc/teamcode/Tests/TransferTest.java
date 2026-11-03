@@ -12,7 +12,7 @@ import org.firstinspires.ftc.teamcode.Utils.Toggle;
 public class TransferTest extends OpMode {
     Transfer transfer;
     JoinedTelemetry joinedTelemetry;
-    Toggle transferToggle;
+    Toggle transferToggle = new Toggle();
 
     @Override
     public void init() {

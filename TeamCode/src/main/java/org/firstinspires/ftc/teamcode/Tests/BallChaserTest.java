@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.Tests;
 
 import com.pedropathing.follower.Follower;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.skeletonarmy.marrow.BulkCaching;
 import com.skeletonarmy.marrow.weaver.PedroPathingConverter;
@@ -10,6 +11,7 @@ import org.firstinspires.ftc.teamcode.Pedro.Constants;
 import org.firstinspires.ftc.teamcode.Utils.BallChaserUtil;
 import org.firstinspires.ftc.teamcode.Utils.PanelsFieldDrawing;
 
+@Disabled
 @Autonomous(name = "Ball Chaser Test", group = "Tests")
 @BulkCaching
 public class BallChaserTest extends OpMode {

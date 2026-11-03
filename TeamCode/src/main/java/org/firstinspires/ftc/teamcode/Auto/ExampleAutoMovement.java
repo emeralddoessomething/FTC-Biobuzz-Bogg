@@ -8,11 +8,13 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
 import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.Pedro.Constants;
 
 @Autonomous // wow new annotation
+@Disabled
 public class ExampleAutoMovement extends OpMode {
     // I highly recommend you read the pedro pathing docs, https://pedropathing.com
 

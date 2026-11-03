@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.Utils;
 
 import android.util.Size;
 
+import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.controllers.Controller;
 import com.pedropathing.follower.Follower;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -26,7 +27,7 @@ import java.util.List;
 /**
  * Combined heading locking using both odometry and apriltags. Uses OdoHeadingLock
  */
-//@Configurable
+@Configurable
 public class HeadingLockV2 {
     public static double p = 0.01;
     public static double d = 0.0;
@@ -47,8 +48,8 @@ public class HeadingLockV2 {
      */
     public HeadingLockV2(HardwareMap hardwareMap, Follower follower) {
         String hardwareMapName = "webcam";
-        Position cameraPosition = new Position(DistanceUnit.INCH, 0, 0, 0, 0);
-        YawPitchRollAngles cameraOrientation = new YawPitchRollAngles(AngleUnit.DEGREES, 0, 0, 0, 0);
+        Position cameraPosition = new Position(DistanceUnit.INCH, 0, 6, 0, 0);
+        YawPitchRollAngles cameraOrientation = new YawPitchRollAngles(AngleUnit.DEGREES, 0, 45, 0, 0);
 
         aprilTagProcessor = new AprilTagProcessor.Builder()
             .setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)

@@ -18,7 +18,7 @@ public class Shooter {
     private double currentRpm;
     private double pprAtOutputShaft;
 
-    public static double p = 0.0;
+    public static double p = 0.1;
     public static double i = 0.0;
     public static double d = 0.0;
     public static double f = 0.0;
@@ -26,7 +26,7 @@ public class Shooter {
     public Shooter(HardwareMap hardwareMap) {
         String hardwareMapName = "flywheel";
         DcMotorEx.Direction direction = DcMotorSimple.Direction.FORWARD;
-        DcMotorEx.ZeroPowerBehavior zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE;
+        DcMotorEx.ZeroPowerBehavior zeroPowerBehavior = DcMotor.ZeroPowerBehavior.FLOAT;
         pprAtOutputShaft = 28; // 6k rpm
 
         flywheel = hardwareMap.get(DcMotorEx.class, hardwareMapName);
@@ -74,4 +74,5 @@ public class Shooter {
     public DcMotorEx getMotorObject() {
         return flywheel;
     }
+    public PIDFController getControllerObject() {return controller;}
 }
