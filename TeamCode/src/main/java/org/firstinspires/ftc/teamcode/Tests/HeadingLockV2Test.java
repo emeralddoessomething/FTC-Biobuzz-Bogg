@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Tests;
 
+import com.bylazar.camerastream.Plugin;
 import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
@@ -13,8 +14,9 @@ import com.skeletonarmy.marrow.prompts.Prompter;
 import org.firstinspires.ftc.teamcode.Pedro.Constants;
 import org.firstinspires.ftc.teamcode.SubSystems.AutoTeleOpTransfer.TransferClass;
 import org.firstinspires.ftc.teamcode.Utils.HeadingLockV2;
+import org.firstinspires.ftc.teamcode.Utils.Toggle;
 
-@Disabled
+//@Disabled
 @TeleOp(name = "HeadingLockV2 Test", group = "Tests")
 public class HeadingLockV2Test extends OpMode {
     Follower follower;
@@ -28,11 +30,11 @@ public class HeadingLockV2Test extends OpMode {
 
     Prompter prompter = new Prompter(this);
 
+    Toggle headingLockToggle = new Toggle();
+
     @Override
     public void init() {
         follower = Constants.create(hardwareMap);
-        servo = hardwareMap.get(Servo.class, "armLeft");
-        servo.setPosition(0.50);
 
         prompter.prompt("alliance", new OptionPrompt<>("Alliance", Alliance.RED, Alliance.BLUE))
                 .label("Alliance")
@@ -54,11 +56,20 @@ public class HeadingLockV2Test extends OpMode {
         }
 
         headingLockV2 = new HeadingLockV2(hardwareMap, follower);
+
+//        Plugin.INSTANCE.startStream(headingLockV2.getVisionPortal(), 60);
     }
 
     @Override
     public void loop() {
-        double correction = headingLockV2.fusionUpdate();
+        headingLockToggle.update(gamepad1.right_stick_button);
+
+        double correction = 0;
+
+        if(headingLockToggle.isEnabled()) {
+            correction = headingLockV2.fusionUpdate();
+        }
+
         double apriltagCorrection = headingLockV2.aprilTagUpdate();
         double odoCorrection = headingLockV2.odometryUpdate();
 
@@ -74,6 +85,8 @@ public class HeadingLockV2Test extends OpMode {
         telemetry.addLine("Apriltag output: " + apriltagCorrection);
         telemetry.addLine("Odometry output: " + odoCorrection);
         telemetry.addLine("Fusion output: " + correction);
+        telemetry.addLine();
+        telemetry.addLine("Heading Locking: " + headingLockToggle.isEnabled());
 
         follower.update();
     }

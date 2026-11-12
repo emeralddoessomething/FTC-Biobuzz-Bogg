@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.Utils;
 
 import android.util.Size;
 
+import com.bylazar.camerastream.CameraStreamPluginConfig;
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.controllers.Controller;
 import com.pedropathing.follower.Follower;
@@ -41,12 +42,27 @@ public class HeadingLockV2 {
     private OdoHeadingLock odoHeadingLock;
     private double tx;
 
+    public enum state {
+        NOT_TRACKING,
+        LOCKING_ODO,
+        LOCKED_ODO,
+        LOCKING_APRILTAG,
+        LOCKED_APRILTAG
+    }
+
     /**
      * Constructor
      * @param hardwareMap hardwaremap
      * @param follower Current Pedro Pathing Follower
      */
     public HeadingLockV2(HardwareMap hardwareMap, Follower follower) {
+        /*
+        > ov9281 arducam calibration constants at 320x240 mpjeg (as tuned with mrcal, assuming 70 deg fov): fx,fy,cx,cy are 281.5573273, 281.366942, 156.3332591, 119.8965271
+
+        and then this for 640x480
+        > 549.651, 549.651, 317.108, 236.644
+         */
+
         String hardwareMapName = "webcam";
         Position cameraPosition = new Position(DistanceUnit.INCH, 0, 6, 0, 0);
         YawPitchRollAngles cameraOrientation = new YawPitchRollAngles(AngleUnit.DEGREES, 0, 45, 0, 0);
@@ -56,11 +72,14 @@ public class HeadingLockV2 {
             .setTagLibrary(AprilTagGameDatabase.getBioBuzzTagLibrary())
             .setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
             .setCameraPose(cameraPosition, cameraOrientation)
+            .setNumThreads(3)
 
             // If calibration isn't defined, sdk will automatically try to load one for you
-            //.setLensIntrinsics(578.272, 578.272, 402.145, 221.506) // fx, fy, cx, cy
+            .setLensIntrinsics(549.651, 549.651, 317.108, 236.644) // fx, fy, cx, cy
 
             .build();
+
+        aprilTagProcessor.setDecimation(0); // Decimation is how compressed the image will become before processing. Higher is more compressed, one is lowest
 
         visionPortal = new VisionPortal.Builder()
             .addProcessor(aprilTagProcessor)
@@ -167,5 +186,9 @@ public class HeadingLockV2 {
 //
 //        double biasedAverage = (returnedApriltagController * apriltagBiasPercentage) + (returnedOdoController * odometryBiasPercentage);
 //        return biasedAverage;
+    }
+
+    public VisionPortal getVisionPortal() {
+        return visionPortal;
     }
 }

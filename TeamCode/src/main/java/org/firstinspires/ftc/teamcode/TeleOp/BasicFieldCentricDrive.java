@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.TeleOp;
 
 import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.math.Pose;
 import com.pedropathing.utils.Utils;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -21,6 +22,7 @@ public class BasicFieldCentricDrive extends OpMode {
         LynxUtil.setBulkCachingMode(hardwareMap, LynxModule.BulkCachingMode.AUTO);
 
         follower = Constants.create(hardwareMap);
+        follower.setPose(new Pose(0, 0, 0));
     }
 
     @Override
@@ -31,7 +33,7 @@ public class BasicFieldCentricDrive extends OpMode {
                 -gamepad1.right_stick_x,
 //                follower.pose().heading()
 //                Math.PI/-4
-                Math.toRadians(-45)
+                Math.toRadians(90)
         );
 
         follower.manual(drivePowers);
