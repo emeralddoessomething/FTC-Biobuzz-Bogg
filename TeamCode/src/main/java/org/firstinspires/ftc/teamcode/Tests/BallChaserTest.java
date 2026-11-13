@@ -9,7 +9,6 @@ import com.skeletonarmy.marrow.weaver.PedroPathingConverter;
 
 import org.firstinspires.ftc.teamcode.Pedro.Constants;
 import org.firstinspires.ftc.teamcode.Utils.BallChaserUtil;
-import org.firstinspires.ftc.teamcode.Utils.PanelsFieldDrawing;
 
 @Disabled
 @Autonomous(name = "Ball Chaser Test", group = "Tests")
@@ -47,8 +46,6 @@ public class BallChaserTest extends OpMode {
                 }
                 break;
         }
-
-        PanelsFieldDrawing.drawRobot(follower.pose());
 
         follower.update();
     }

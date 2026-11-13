@@ -12,7 +12,6 @@ import com.skeletonarmy.marrow.prompts.Prompter;
 import org.firstinspires.ftc.teamcode.Pedro.Constants;
 import org.firstinspires.ftc.teamcode.SubSystems.AutoTeleOpTransfer.TransferClass;
 import org.firstinspires.ftc.teamcode.Utils.HeadingLock;
-import org.firstinspires.ftc.teamcode.Utils.HeadingLockV2;
 import org.firstinspires.ftc.teamcode.Utils.Toggle;
 
 @TeleOp(name = "HeadingLock Test (Newest)", group = "Tests")
@@ -32,7 +31,7 @@ public class HeadingLockTest extends OpMode {
     public void init() {
         follower = Constants.create(hardwareMap);
 
-        prompter.prompt("alliance", new OptionPrompt<>("Alliance", HeadingLockV2Test.Alliance.RED, HeadingLockV2Test.Alliance.BLUE))
+        prompter.prompt("alliance", new OptionPrompt<>("Alliance", Alliance.RED, Alliance.BLUE))
             .label("Alliance")
             .showSummary()
             .onComplete(this::onPrompterComplete);
@@ -40,9 +39,9 @@ public class HeadingLockTest extends OpMode {
 
     public void onPrompterComplete() {
         follower.setPose(new Pose(0, 0, 0));
-        if(prompter.get("alliance") == HeadingLockV2Test.Alliance.RED) {
+        if(prompter.get("alliance") == Alliance.RED) {
             TransferClass.alliance = TransferClass.Alliance.RED;
-        } else if(prompter.get("alliance") == HeadingLockV2Test.Alliance.BLUE){
+        } else if(prompter.get("alliance") == Alliance.BLUE){
             TransferClass.alliance = TransferClass.Alliance.BLUE;
         }
 

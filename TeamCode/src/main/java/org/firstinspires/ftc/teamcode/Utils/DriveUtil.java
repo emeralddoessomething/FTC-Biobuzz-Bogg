@@ -47,7 +47,7 @@ public class DriveUtil {
 //        }
 //    }
 
-    public static DrivePowers getRobotCentricDrivePowers(Gamepad gamepad, HeadingLockV2 headingLockV2, Toggle headingLockToggle) {
+    public static DrivePowers getRobotCentricDrivePowers(Gamepad gamepad, HeadingLock headingLock, Toggle headingLockToggle) {
         double rightStickXCorrection = 0.0;
 
         double drivePowerMultiplyFactor = 1;
@@ -70,16 +70,16 @@ public class DriveUtil {
                 rightStickXCorrection = 0.0;
                 break;
             case ODOMETRY:
-                if (headingLockV2 == null) return new DrivePowers(-gamepad.left_stick_y * drivePowerMultiplyFactor, -gamepad.left_stick_x * drivePowerMultiplyFactor, -gamepad.right_stick_x * drivePowerMultiplyFactor);
-                rightStickXCorrection = headingLockV2.odometryUpdate();
+                if (headingLock == null) return new DrivePowers(-gamepad.left_stick_y * drivePowerMultiplyFactor, -gamepad.left_stick_x * drivePowerMultiplyFactor, -gamepad.right_stick_x * drivePowerMultiplyFactor);
+                rightStickXCorrection = headingLock.odometryUpdate();
                 break;
             case APRILTAG:
-                if (headingLockV2 == null) return new DrivePowers(-gamepad.left_stick_y * drivePowerMultiplyFactor, -gamepad.left_stick_x * drivePowerMultiplyFactor, -gamepad.right_stick_x * drivePowerMultiplyFactor);
-                rightStickXCorrection = headingLockV2.aprilTagUpdate();
+                if (headingLock == null) return new DrivePowers(-gamepad.left_stick_y * drivePowerMultiplyFactor, -gamepad.left_stick_x * drivePowerMultiplyFactor, -gamepad.right_stick_x * drivePowerMultiplyFactor);
+                rightStickXCorrection = headingLock.aprilTagUpdate();
                 break;
             case FUSION:
-                if (headingLockV2 == null) return new DrivePowers(-gamepad.left_stick_y * drivePowerMultiplyFactor, -gamepad.left_stick_x * drivePowerMultiplyFactor, -gamepad.right_stick_x * drivePowerMultiplyFactor);
-                rightStickXCorrection = headingLockV2.fusionUpdate();
+                if (headingLock == null) return new DrivePowers(-gamepad.left_stick_y * drivePowerMultiplyFactor, -gamepad.left_stick_x * drivePowerMultiplyFactor, -gamepad.right_stick_x * drivePowerMultiplyFactor);
+                rightStickXCorrection = headingLock.fusionUpdate();
                 break;
         }
 
