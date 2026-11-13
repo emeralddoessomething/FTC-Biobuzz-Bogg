@@ -22,6 +22,8 @@ public class IntakeTest extends OpMode {
 
     @Override
     public void loop() {
+        joinedTelemetry.addLine("A/B/X - Intake/Outtake/Stop");
+
         if(gamepad1.a) {
             intake.setState(Intake.State.INTAKE);
         }

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.Tests;
 
 import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -12,6 +13,7 @@ import org.firstinspires.ftc.teamcode.SubSystems.Shooter;
 import org.firstinspires.ftc.teamcode.SubSystems.Transfer;
 import org.firstinspires.ftc.teamcode.Utils.Toggle;
 
+@Disabled
 @TeleOp(name = "Flywheel Test", group = "Tests")
 public class FlywheelTest extends OpMode {
     Shooter shooter;
@@ -45,7 +47,7 @@ public class FlywheelTest extends OpMode {
         fl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         fr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        shooter.setTargetRpm(2000);
+        shooter.setTargetRpm(10);
 
         transfer = new Transfer(hardwareMap);
 
@@ -60,8 +62,6 @@ public class FlywheelTest extends OpMode {
         joinedTelemetry.addLine("Current RPM: " + shooter.getCurrentRpm());
         joinedTelemetry.addLine("Target RPM: " + shooter.getTargetRpm());
         joinedTelemetry.addLine("Is Ready? " + shooter.isReady());
-
-        joinedTelemetry.addLine("Current velocity" + shooter.getMotorObject().getVelocity());
         joinedTelemetry.update();
 
         if(gamepad1.rightBumperWasPressed()) {
@@ -86,21 +86,5 @@ public class FlywheelTest extends OpMode {
         bl.setPower(backLeftPower);
         fr.setPower(frontRightPower);
         br.setPower(backRightPower);
-
-        transferToggle.update(gamepad1.a);
-
-        if(gamepad1.a) {
-            transfer.setState(Transfer.State.UP);
-        } else {
-            transfer.setState(Transfer.State.DOWN);
-        }
-
-        if(gamepad1.right_trigger > 0.0) {
-            intake.setState(Intake.State.INTAKE);
-        } else if(gamepad1.left_trigger > 0.0) {
-            intake.setState(Intake.State.OUTTAKE);
-        } else {
-            intake.setState(Intake.State.STOP);
-        }
     }
 }
