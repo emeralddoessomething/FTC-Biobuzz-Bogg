@@ -6,12 +6,14 @@ import com.bylazar.lights.PanelsLights;
 import com.bylazar.lights.RGBIndicator;
 import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Utils.GoBildaIndicatorLight;
 
 @Configurable
+@Disabled
 @TeleOp(name = "GoBilda Indicator Light Test", group = "Tests")
 public class GoBildaIndicatorLightTest extends OpMode {
     private GoBildaIndicatorLight light;

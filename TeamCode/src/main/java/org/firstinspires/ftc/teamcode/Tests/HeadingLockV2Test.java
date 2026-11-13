@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.SubSystems.AutoTeleOpTransfer.TransferClas
 import org.firstinspires.ftc.teamcode.Utils.HeadingLockV2;
 import org.firstinspires.ftc.teamcode.Utils.Toggle;
 
-//@Disabled
+@Disabled
 @TeleOp(name = "HeadingLockV2 Test", group = "Tests")
 public class HeadingLockV2Test extends OpMode {
     Follower follower;

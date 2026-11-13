@@ -6,6 +6,7 @@ import com.bylazar.camerastream.Plugin;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.Utility;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
@@ -25,7 +26,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Configurable
-@TeleOp(name = "Camera Exposure Gain Tuner", group = "Tests")
+@Utility(name = "Camera Exposure Gain Tuner")
 public class CameraExposureGainTuner extends OpMode {
     private AprilTagProcessor aprilTagProcessor;
     private VisionPortal visionPortal;
