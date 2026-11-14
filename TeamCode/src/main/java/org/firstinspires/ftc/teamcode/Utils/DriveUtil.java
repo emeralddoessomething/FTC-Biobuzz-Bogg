@@ -50,12 +50,14 @@ public class DriveUtil {
     public static DrivePowers getRobotCentricDrivePowers(Gamepad gamepad, HeadingLock headingLock, Toggle headingLockToggle) {
         double rightStickXCorrection = 0.0;
 
-        double drivePowerMultiplyFactor = 1;
-        if (gamepad.left_trigger == 1) {
-            drivePowerMultiplyFactor = 0.2;
-        } else {
-            drivePowerMultiplyFactor = Math.abs(gamepad.left_trigger - 1);
-        }
+//        double drivePowerMultiplyFactor = 1;
+//        if (gamepad.left_trigger == 1) {
+//            drivePowerMultiplyFactor = 0.2;
+//        } else {
+//            drivePowerMultiplyFactor = Math.abs(gamepad.left_trigger - 1);
+//        }
+
+        double drivePowerMultiplyFactor = 1.0 - (gamepad.left_trigger * 0.8); // todo - test
 
         if(!headingLockToggle.isEnabled()) {
             return new DrivePowers(
@@ -81,6 +83,10 @@ public class DriveUtil {
                 if (headingLock == null) return new DrivePowers(-gamepad.left_stick_y * drivePowerMultiplyFactor, -gamepad.left_stick_x * drivePowerMultiplyFactor, -gamepad.right_stick_x * drivePowerMultiplyFactor);
                 rightStickXCorrection = headingLock.fusionUpdate();
                 break;
+        }
+
+        if (Double.isNaN(rightStickXCorrection)) {
+            rightStickXCorrection = 0.0;
         }
 
         DrivePowers drivePowers = new DrivePowers(

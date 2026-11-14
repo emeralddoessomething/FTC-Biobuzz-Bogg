@@ -80,7 +80,7 @@ public class HeadingLock {
                 .setDrawTagID(true)
 
             // If calibration isn't defined, sdk will automatically try to load one for you
-            // todo - https://ftc-docs.firstinspires.org/en/latest/programming_resources/vision/camera_calibration/camera-calibration.html
+            // https://ftc-docs.firstinspires.org/en/latest/programming_resources/vision/camera_calibration/camera-calibration.html
             .setLensIntrinsics(459.611, 459.611, 313.399, 205.276) // fx, fy, cx, cy
 
             .build();
@@ -110,6 +110,27 @@ public class HeadingLock {
         }
     }
 
+
+    public boolean configureVisionPortal() {
+        if (visionPortalConfigured) {
+            return true;
+        }
+
+        if (visionPortal.getCameraState() == VisionPortal.CameraState.STREAMING) {
+            ExposureControl exposureControl = visionPortal.getCameraControl(ExposureControl.class);
+            GainControl gainControl = visionPortal.getCameraControl(GainControl.class);
+
+            if (exposureControl != null && gainControl != null) {
+                exposureControl.setMode(ExposureControl.Mode.Manual);
+                exposureControl.setExposure(10, TimeUnit.MILLISECONDS);
+                gainControl.setGain(250);
+                visionPortalConfigured = true;
+                return true;
+            }
+        }
+
+        return false;
+    }
     public double aprilTagUpdate() {
         if (!visionPortalConfigured && visionPortal.getCameraState() == VisionPortal.CameraState.STREAMING && !visionPortalConfigured) {
             ExposureControl exposureControl = visionPortal.getCameraControl(ExposureControl.class);
@@ -173,7 +194,7 @@ public class HeadingLock {
             return -visionController.update(tx, visionTarget);
         }
 
-        return Double.NaN;
+        return Double.NaN; // todo - at some point, gotta make this return something like 0 while still keeping it safe if atag actually reads zero. Currently, if running just atag then in DriveUtil I have to add a check
     }
 
     public double odometryUpdate() {

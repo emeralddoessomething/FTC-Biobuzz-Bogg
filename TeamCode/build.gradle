@@ -62,4 +62,5 @@ dependencies {
     implementation 'com.skeletonarmyftc.marrow:core:1.2.5' // Marrow
     implementation "org.solverslib:core:0.3.6" // solverslib
     implementation "org.solverslib:pedroPathing:0.3.6" // solverslib
+    implementation "dev.frozenmilk.dairy:CachingHardware:1.0.0" // Dairy Chaching Hardware
 }

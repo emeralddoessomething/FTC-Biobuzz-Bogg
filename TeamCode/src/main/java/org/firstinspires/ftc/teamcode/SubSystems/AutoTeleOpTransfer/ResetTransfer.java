@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.SubSystems.AutoTeleOpTransfer;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-@TeleOp(name = "Reset Transfer Vars", group = "Utils")
+@TeleOp(name = "Reset Transfer Vars", group = "Transfer")
 public class ResetTransfer extends OpMode {
     @Override
     public void init() {

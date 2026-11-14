@@ -10,6 +10,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.Utils.PIDFController;
 
+import dev.frozenmilk.dairy.cachinghardware.CachingDcMotorEx;
+
 @Configurable
 public class Shooter {
     private DcMotorEx upperFlywheel;
@@ -34,11 +36,13 @@ public class Shooter {
         DcMotorEx.ZeroPowerBehavior zeroPowerBehavior = DcMotor.ZeroPowerBehavior.FLOAT;
         pprAtOutputShaft = 28; // 6k rpm
 
-        upperFlywheel = hardwareMap.get(DcMotorEx.class, upperHardwareMapName);
+//        upperFlywheel = hardwareMap.get(DcMotorEx.class, upperHardwareMapName);
+        upperFlywheel = new CachingDcMotorEx(hardwareMap.get(DcMotorEx.class, upperHardwareMapName));
         upperFlywheel.setDirection(upperDirection);
         upperFlywheel.setZeroPowerBehavior(zeroPowerBehavior);
 
-        lowerFlywheel = hardwareMap.get(DcMotorEx.class, lowerHardwareMapName);
+//        lowerFlywheel = hardwareMap.get(DcMotorEx.class, lowerHardwareMapName);
+        lowerFlywheel = new CachingDcMotorEx(hardwareMap.get(DcMotorEx.class, lowerHardwareMapName));
         lowerFlywheel.setDirection(lowerDirection);
         lowerFlywheel.setZeroPowerBehavior(zeroPowerBehavior);
 
