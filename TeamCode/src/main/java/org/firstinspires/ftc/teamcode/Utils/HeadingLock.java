@@ -33,6 +33,15 @@ import java.util.concurrent.TimeUnit;
 public class HeadingLock {
     private Follower follower;
     private TransferClass.Alliance alliance;
+    public enum Status {
+        INIT,
+        ODO_LOCKING,
+        ODO_LOCKED,
+        VISION_LOCKING,
+        VISION_LOCKED
+    }
+
+    Status status = Status.INIT;
 
     // Vision
     public static double visionP = 0.01;
@@ -191,7 +200,14 @@ public class HeadingLock {
         }
 
         if(!Double.isNaN(tx)) {
-            return -visionController.update(tx, visionTarget);
+            double toReturn = -visionController.update(tx, visionTarget);
+            if(Math.abs(toReturn) > 0.1) {
+                status = Status.VISION_LOCKING;
+            } else {
+                status = Status.VISION_LOCKED;
+            }
+
+            return toReturn;
         }
 
         return Double.NaN; // todo - at some point, gotta make this return something like 0 while still keeping it safe if atag actually reads zero. Currently, if running just atag then in DriveUtil I have to add a check
@@ -215,7 +231,14 @@ public class HeadingLock {
         // Angle.normalizeSigned normalizes the angle to [-PI, PI] (-180 to +180 degrees)
         angleError = Math.toDegrees(Angle.normalizeSigned(rawError));
 
-        return -odometryController.update(angleError, odometryTarget);
+        double toReturn = -odometryController.update(angleError, odometryTarget);
+        if(Math.abs(toReturn) > 0.1) {
+            status = Status.ODO_LOCKING;
+        } else {
+            status = Status.ODO_LOCKED;
+        }
+
+        return toReturn;
     }
     public Pose findNearestPose(TransferClass.Alliance alliance) {
         ArrayList<Pose> possiblePoses = new ArrayList<Pose>();
@@ -290,5 +313,13 @@ public class HeadingLock {
     public void updateControllerCoefficients() {
         visionController.setPIDF(visionP, 0, visionD, 0);
         odometryController.setPIDF(odometryP, 0, odometryD, 0);
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
     }
 }
