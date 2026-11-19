@@ -32,6 +32,7 @@ public class TransferClass {
     public static Alliance alliance = null;
     public static enum Alliance {
         RED,
-        BLUE
+        BLUE,
+        UNKNOWN
     }
 }

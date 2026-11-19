@@ -14,13 +14,18 @@ public class CustomizeTransfer extends OpMode {
 
     @Override
     public void init() {
-        prompter.prompt("alliance", new OptionPrompt<>("Alliance ~ Current: " + TransferClass.alliance.toString(), TransferClass.Alliance.RED, TransferClass.Alliance.RED, null))
+        prompter.prompt("alliance", new OptionPrompt<>("Alliance ~ Current: " + TransferClass.alliance.toString(), TransferClass.Alliance.RED, TransferClass.Alliance.BLUE, TransferClass.Alliance.UNKNOWN))
                 .label("Alliance")
             .showSummary()
             .onComplete(this::save);
     }
 
     public void save() {
+        if(prompter.get("alliance") == TransferClass.Alliance.UNKNOWN) {
+            TransferClass.alliance = null;
+            return;
+        }
+
         TransferClass.alliance = prompter.get("alliance");
     }
 

@@ -103,11 +103,12 @@ public class BoggTeleop extends OpMode {
         Artboard 0 - solid purple
         Artboard 1 - solid yellow
         Artboard 2 - sold red
-        Artboard 3 - RGB
+        Artboard 3 - RGB (rainbow)
          */
         prismDriver = hardwareMap.get(GoBildaPrismDriver.class, "prism");
         prismDriver.loadAnimationsFromArtboard(GoBildaPrismDriver.Artboard.ARTBOARD_0);
         currentPrismState = PrismState.DEFAULT;
+        yellowBlink.setPeriod(500); // ms, so 250ms yellow 250ms off
 
         // Heading Locking
         headingLock = new HeadingLock(hardwareMap, follower);
