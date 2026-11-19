@@ -17,7 +17,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.Utils.PIDFController;
 
-@Autonomous(name = "(IGNORE) Non Pedro Drive Forwards Pinpoint", group = "Auto")
+@Autonomous(name = "Non Pedro Drive Forwards Pinpoint (Distance)", group = "Auto")
 public class NonPedroDriveForwardPinpoint extends OpMode {
     GoBildaPinpointDriver pinpointDriver;
     DcMotor bl;

@@ -15,7 +15,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
-@Autonomous(name = "Non Pedro Drive Forwards", group = "Auto")
+@Autonomous(name = "Non Pedro Drive Forwards (Time)", group = "Auto")
 public class NonPedroDriveForward extends OpMode {
     DcMotor bl;
     DcMotor br;
