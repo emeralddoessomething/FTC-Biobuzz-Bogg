@@ -2,11 +2,13 @@ package org.firstinspires.ftc.teamcode.TeleOp;
 
 import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.follower.Follower;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.seattlesolvers.solverslib.util.InterpLUT;
 import com.skeletonarmy.marrow.BulkCaching;
+import com.skeletonarmy.marrow.LynxUtil;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Pedro.Constants;
@@ -24,7 +26,7 @@ import org.firstinspires.ftc.teamcode.Utils.Prism.PrismAnimations;
 import org.firstinspires.ftc.teamcode.Utils.Round;
 import org.firstinspires.ftc.teamcode.Utils.Toggle;
 
-@BulkCaching
+@BulkCaching(mode = LynxModule.BulkCachingMode.MANUAL)
 @TeleOp(name = "Bogg TeleOp", group = "TeleOp")
 public class BoggTeleop extends OpMode {
     Follower follower;
@@ -129,6 +131,8 @@ public class BoggTeleop extends OpMode {
 
     @Override
     public void loop() {
+        LynxUtil.clearBulkCache(hardwareMap);
+
         follower.update();
         shooter.update();
 
