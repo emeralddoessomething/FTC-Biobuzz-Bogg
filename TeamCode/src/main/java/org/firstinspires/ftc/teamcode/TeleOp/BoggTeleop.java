@@ -41,13 +41,17 @@ public class BoggTeleop extends OpMode {
     GoBildaIndicatorLight indicatorLight;
     GoBildaPrismDriver prismDriver;
     PrismAnimations.Blink redBlink = new PrismAnimations.Blink(Color.RED, Color.TRANSPARENT);
+    PrismAnimations.Blink yellowBlink = new PrismAnimations.Blink(Color.YELLOW, Color.TRANSPARENT);
     PrismAnimations.Solid redSolid = new PrismAnimations.Solid(Color.RED);
     PrismAnimations.Solid blank = new PrismAnimations.Solid(Color.TRANSPARENT);
 
     enum PrismState {
         DEFAULT,
+        HEADING_LOCKING,
+        HEADING_LOCKED,
         RED_BLINK,
-        SOLID_RED
+        SOLID_RED,
+        RAINBOW
     }
     PrismState currentPrismState = PrismState.DEFAULT;
 
@@ -63,7 +67,7 @@ public class BoggTeleop extends OpMode {
 
         if(TransferClass.robotPose == null) {
             telemetry.addLine(HtmlTelemetryUtil.constructString(HtmlTelemetryUtil.Size.h1, HtmlTelemetryUtil.Colors.red, "Transfer Pose is Null"));
-            telemetry.addLine(HtmlTelemetryUtil.constructString(HtmlTelemetryUtil.Size.h2, HtmlTelemetryUtil.Colors.yellow, "Odo Heading Locking is Default OFF"));
+            telemetry.addLine(HtmlTelemetryUtil.constructString(HtmlTelemetryUtil.Size.h2, HtmlTelemetryUtil.Colors.yellow, "Odo Heading Locking is Default OFF (Now Apriltags)"));
 
             DriveUtil.headingLockMethod = DriveUtil.HeadingLockMethod.APRILTAG;
         } else {
@@ -129,6 +133,11 @@ public class BoggTeleop extends OpMode {
         shooter.update();
 
         headingLockToggle.update(gamepad1.right_stick_button); // todo - change
+        if(headingLockToggle.isEnabled()) {
+            headingLock.enableApriltagProcesser();
+        } else {
+            headingLock.disableApriltagProcesser();
+        }
 
         // Indicator Light
         if(Math.abs(shooter.getCurrentRpm() - shooter.getTargetRpm()) > 500) {
@@ -141,6 +150,9 @@ public class BoggTeleop extends OpMode {
 
         // Underglow
         double timeRemaining = 120.0 - matchTimer.seconds();
+        boolean headingLocked = headingLockToggle.isEnabled() && (headingLock.getStatus() == HeadingLock.Status.VISION_LOCKED || headingLock.getStatus() == HeadingLock.Status.ODO_LOCKED);
+        boolean headingLocking = headingLockToggle.isEnabled() && (headingLock.getStatus() == HeadingLock.Status.VISION_LOCKING || headingLock.getStatus() == HeadingLock.Status.ODO_LOCKING);
+
         PrismState targetState;
         if (timeRemaining <= 5.0) {
             targetState = PrismState.SOLID_RED;
@@ -148,11 +160,15 @@ public class BoggTeleop extends OpMode {
             targetState = PrismState.RED_BLINK;
         } else if (timeRemaining <= 30.0 && timeRemaining > 25.0) {
             targetState = PrismState.RED_BLINK;
+        } else if(headingLocking) {
+            targetState = PrismState.HEADING_LOCKING;
+        } else if (headingLocked) {
+            targetState = PrismState.HEADING_LOCKED;
         } else {
             targetState = PrismState.DEFAULT;
         }
 
-        if (targetState != currentPrismState) {
+        if (targetState != currentPrismState) { // I do it this way because i2c writes are an expensive operation, so this makes sure that I don't have to do one every loop
             currentPrismState = targetState;
             switch (currentPrismState) {
                 case RED_BLINK:
@@ -160,6 +176,12 @@ public class BoggTeleop extends OpMode {
                     break;
                 case SOLID_RED:
                     prismDriver.insertAndUpdateAnimation(GoBildaPrismDriver.LayerHeight.LAYER_1, redSolid);
+                    break;
+                case HEADING_LOCKING:
+                    prismDriver.insertAndUpdateAnimation(GoBildaPrismDriver.LayerHeight.LAYER_1, yellowBlink);
+                    break;
+                case HEADING_LOCKED:
+                    prismDriver.loadAnimationsFromArtboard(GoBildaPrismDriver.Artboard.ARTBOARD_1);
                     break;
                 case DEFAULT:
                     prismDriver.loadAnimationsFromArtboard(GoBildaPrismDriver.Artboard.ARTBOARD_0);

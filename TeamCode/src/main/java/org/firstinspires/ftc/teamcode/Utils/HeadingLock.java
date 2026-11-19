@@ -52,6 +52,7 @@ public class HeadingLock {
     private double lastValidVisionOutput = Double.NaN;
     private ArrayList<Integer> trackableIds = new ArrayList<Integer>();
     private AprilTagProcessor aprilTagProcessor;
+    private boolean aprilTagProcessorEnabled = true;
     private VisionPortal visionPortal;
     private PIDFController visionController = new PIDFController(visionP, 0, visionD, 0);
     private boolean visionPortalConfigured = false;
@@ -79,14 +80,14 @@ public class HeadingLock {
             .setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
             .setCameraPose(cameraPosition, cameraOrientation)
             .setNumThreads(3)
-//            .setDrawAxes(false)
-//            .setDrawCubeProjection(false)
-//            .setDrawTagOutline(false)
-//            .setDrawTagID(false)
-                .setDrawAxes(true)
-                .setDrawCubeProjection(true)
-                .setDrawTagOutline(true)
-                .setDrawTagID(true)
+            .setDrawAxes(false)
+            .setDrawCubeProjection(false)
+            .setDrawTagOutline(false)
+            .setDrawTagID(false)
+//                .setDrawAxes(true)
+//                .setDrawCubeProjection(true)
+//                .setDrawTagOutline(true)
+//                .setDrawTagID(true)
 
             // If calibration isn't defined, sdk will automatically try to load one for you
             // https://ftc-docs.firstinspires.org/en/latest/programming_resources/vision/camera_calibration/camera-calibration.html
@@ -101,7 +102,7 @@ public class HeadingLock {
             .setCamera(hardwareMap.get(WebcamName.class, hardwareMapName))
             .setCameraResolution(new Size(640, 480))
             .setStreamFormat(VisionPortal.StreamFormat.YUY2) // YUY2 is uncompressed, MJPEG is compressed
-//            .enableLiveView(false)
+            .enableLiveView(false)
             .build();
 
         alliance = TransferClass.alliance;
@@ -287,11 +288,21 @@ public class HeadingLock {
     }
 
     public void disableApriltagProcesser() {
-        visionPortal.setProcessorEnabled(aprilTagProcessor, false);
+        if(aprilTagProcessorEnabled) {
+            visionPortal.setProcessorEnabled(aprilTagProcessor, false);
+            aprilTagProcessorEnabled = false;
+        }
     }
 
     public void enableApriltagProcesser() {
-        visionPortal.setProcessorEnabled(aprilTagProcessor, true);
+        if(!aprilTagProcessorEnabled) {
+            visionPortal.setProcessorEnabled(aprilTagProcessor, true);
+            aprilTagProcessorEnabled = true;
+        }
+    }
+
+    public boolean isAprilTagProcessorEnabled() {
+        return aprilTagProcessorEnabled;
     }
 
     public AprilTagProcessor getAprilTagProcessor() {
