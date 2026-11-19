@@ -14,8 +14,7 @@ import dev.frozenmilk.dairy.cachinghardware.CachingDcMotorEx;
 
 @Configurable
 public class Shooter {
-    private DcMotorEx upperFlywheel;
-    private DcMotorEx lowerFlywheel;
+    private DcMotorEx flywheel;
     private PIDFController controller;
     private double targetRpm;
     private double currentRpm;
@@ -27,24 +26,15 @@ public class Shooter {
     public static double f = 0.0;
 
     public Shooter(HardwareMap hardwareMap) {
-        String upperHardwareMapName = "upperFlywheel";
-        DcMotorEx.Direction upperDirection = DcMotorSimple.Direction.FORWARD;
-
-        String lowerHardwareMapName = "lowerFlywheel";
-        DcMotorEx.Direction lowerDirection = DcMotorSimple.Direction.REVERSE;
-
+        String hardwareMapName = "flywheel";
+        DcMotorEx.Direction direction = DcMotorSimple.Direction.FORWARD;
         DcMotorEx.ZeroPowerBehavior zeroPowerBehavior = DcMotor.ZeroPowerBehavior.FLOAT;
         pprAtOutputShaft = 28; // 6k rpm
 
-//        upperFlywheel = hardwareMap.get(DcMotorEx.class, upperHardwareMapName);
-        upperFlywheel = new CachingDcMotorEx(hardwareMap.get(DcMotorEx.class, upperHardwareMapName));
-        upperFlywheel.setDirection(upperDirection);
-        upperFlywheel.setZeroPowerBehavior(zeroPowerBehavior);
-
-//        lowerFlywheel = hardwareMap.get(DcMotorEx.class, lowerHardwareMapName);
-        lowerFlywheel = new CachingDcMotorEx(hardwareMap.get(DcMotorEx.class, lowerHardwareMapName));
-        lowerFlywheel.setDirection(lowerDirection);
-        lowerFlywheel.setZeroPowerBehavior(zeroPowerBehavior);
+//        flywheel = hardwareMap.get(DcMotorEx.class, hardwareMapName);
+        flywheel = new CachingDcMotorEx(hardwareMap.get(DcMotorEx.class, hardwareMapName));
+        flywheel.setDirection(direction);
+        flywheel.setZeroPowerBehavior(zeroPowerBehavior);
 
         controller = new PIDFController(p, i, d, f);
     }
@@ -72,31 +62,20 @@ public class Shooter {
 
     public void update() {
         calculateRpm();
-        double controllerOutput = clamp(controller.update(currentRpm, targetRpm), 0, 1);
-        upperFlywheel.setPower(controllerOutput);
-        lowerFlywheel.setPower(controllerOutput);
+        double controlerOutput = controller.update(currentRpm, targetRpm);
+        flywheel.setPower(clamp(controlerOutput, 0, 1));
     }
 
     private void calculateRpm() {
-        double upperRpm = (upperFlywheel.getVelocity() / pprAtOutputShaft) * 60;
-        double lowerRpm = (lowerFlywheel.getVelocity() / pprAtOutputShaft) * 60;
-
-        currentRpm = (upperRpm + lowerRpm)/2;
+        currentRpm = (flywheel.getVelocity() / pprAtOutputShaft) * 60;
     }
 
     public void updateControllerConstants() {
         controller.setPIDF(p, i, d, f);
     }
 
-    public DcMotorEx getMotorObject(int index) {
-        switch(index) {
-            case 0:
-                return upperFlywheel;
-            case 1:
-                return lowerFlywheel;
-        }
-
-        return null;
+    public DcMotorEx getMotorObject() {
+        return flywheel;
     }
     public PIDFController getControllerObject() {return controller;}
 }

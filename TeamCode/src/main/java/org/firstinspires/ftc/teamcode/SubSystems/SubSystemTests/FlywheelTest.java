@@ -13,7 +13,7 @@ import org.firstinspires.ftc.teamcode.SubSystems.Shooter;
 import org.firstinspires.ftc.teamcode.SubSystems.Transfer;
 import org.firstinspires.ftc.teamcode.Utils.Toggle;
 
-@Disabled
+//@Disabled
 @TeleOp(name = "Flywheel Test", group = "Tests")
 public class FlywheelTest extends OpMode {
     Shooter shooter;

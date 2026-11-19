@@ -4,6 +4,7 @@ import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.follower.Follower;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.seattlesolvers.solverslib.util.InterpLUT;
 import com.skeletonarmy.marrow.BulkCaching;
 
@@ -17,6 +18,9 @@ import org.firstinspires.ftc.teamcode.Utils.DriveUtil;
 import org.firstinspires.ftc.teamcode.Utils.GoBildaIndicatorLight;
 import org.firstinspires.ftc.teamcode.Utils.HeadingLock;
 import org.firstinspires.ftc.teamcode.Utils.HtmlTelemetryUtil;
+import org.firstinspires.ftc.teamcode.Utils.Prism.Color;
+import org.firstinspires.ftc.teamcode.Utils.Prism.GoBildaPrismDriver;
+import org.firstinspires.ftc.teamcode.Utils.Prism.PrismAnimations;
 import org.firstinspires.ftc.teamcode.Utils.Round;
 import org.firstinspires.ftc.teamcode.Utils.Toggle;
 
@@ -35,6 +39,19 @@ public class BoggTeleop extends OpMode {
     Toggle headingLockToggle = new Toggle();
 
     GoBildaIndicatorLight indicatorLight;
+    GoBildaPrismDriver prismDriver;
+    PrismAnimations.Blink redBlink = new PrismAnimations.Blink(Color.RED, Color.TRANSPARENT);
+    PrismAnimations.Solid redSolid = new PrismAnimations.Solid(Color.RED);
+    PrismAnimations.Solid blank = new PrismAnimations.Solid(Color.TRANSPARENT);
+
+    enum PrismState {
+        DEFAULT,
+        RED_BLINK,
+        SOLID_RED
+    }
+    PrismState currentPrismState = PrismState.DEFAULT;
+
+    ElapsedTime matchTimer = new ElapsedTime();
 
     @Override
     public void init() {
@@ -76,6 +93,16 @@ public class BoggTeleop extends OpMode {
 
         indicatorLight = new GoBildaIndicatorLight(hardwareMap);
 
+        /*
+        Artboard 0 - solid purple
+        Artboard 1 - solid yellow
+        Artboard 2 - sold red
+        Artboard 3 - RGB
+         */
+        prismDriver = hardwareMap.get(GoBildaPrismDriver.class, "prism");
+        prismDriver.loadAnimationsFromArtboard(GoBildaPrismDriver.Artboard.ARTBOARD_0);
+        currentPrismState = PrismState.DEFAULT;
+
         // Heading Locking
         headingLock = new HeadingLock(hardwareMap, follower);
 
@@ -92,6 +119,8 @@ public class BoggTeleop extends OpMode {
         headingLock.getOdometryController().reset();
         headingLock.getVisionController().reset();
         shooter.getControllerObject().reset();
+
+        matchTimer.reset();
     }
 
     @Override
@@ -101,6 +130,7 @@ public class BoggTeleop extends OpMode {
 
         headingLockToggle.update(gamepad1.right_stick_button); // todo - change
 
+        // Indicator Light
         if(Math.abs(shooter.getCurrentRpm() - shooter.getTargetRpm()) > 500) {
             indicatorLight.setColor(GoBildaIndicatorLight.Color.RED);
         } else if(Math.abs(shooter.getCurrentRpm() - shooter.getTargetRpm()) > 150) {
@@ -109,6 +139,34 @@ public class BoggTeleop extends OpMode {
             indicatorLight.setColor(GoBildaIndicatorLight.Color.GREEN);
         }
 
+        // Underglow
+        double timeRemaining = 120.0 - matchTimer.seconds();
+        PrismState targetState;
+        if (timeRemaining <= 5.0) {
+            targetState = PrismState.SOLID_RED;
+        } else if (timeRemaining <= 15.0 && timeRemaining > 10.0) {
+            targetState = PrismState.RED_BLINK;
+        } else if (timeRemaining <= 30.0 && timeRemaining > 25.0) {
+            targetState = PrismState.RED_BLINK;
+        } else {
+            targetState = PrismState.DEFAULT;
+        }
+
+        if (targetState != currentPrismState) {
+            currentPrismState = targetState;
+            switch (currentPrismState) {
+                case RED_BLINK:
+                    prismDriver.insertAndUpdateAnimation(GoBildaPrismDriver.LayerHeight.LAYER_1, redBlink);
+                    break;
+                case SOLID_RED:
+                    prismDriver.insertAndUpdateAnimation(GoBildaPrismDriver.LayerHeight.LAYER_1, redSolid);
+                    break;
+                case DEFAULT:
+                    prismDriver.loadAnimationsFromArtboard(GoBildaPrismDriver.Artboard.ARTBOARD_0);
+                    break;
+            }
+        }
+        
         // Gamepad 1 controls
         if(gamepad1.right_trigger > 0.1) { // Intake controls
             intake.setState(Intake.State.INTAKE);
@@ -136,13 +194,10 @@ public class BoggTeleop extends OpMode {
 
         if(gamepad2.right_trigger > 0.1) { // Shooting controls (transfer)
             transfer.setMotorState(Transfer.MotorState.FORWARD);
-            transfer.setServoState(Transfer.ServoState.FORWARD);
         } else if(gamepad2.left_trigger > 0.1) {
-            transfer.setMotorState(Transfer.MotorState.FORWARD);
-            transfer.setServoState(Transfer.ServoState.REVERSE);
+            transfer.setMotorState(Transfer.MotorState.REVERSE);
         } else {
             transfer.setMotorState(Transfer.MotorState.STOP);
-            transfer.setServoState(Transfer.ServoState.STOP);
         }
 
         // Telemetry

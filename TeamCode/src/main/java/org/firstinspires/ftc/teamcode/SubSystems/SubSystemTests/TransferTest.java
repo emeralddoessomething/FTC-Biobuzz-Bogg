@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.SubSystems.Transfer;
 
-@Disabled
+//@Disabled
 @TeleOp(name = "Transfer Test", group = "Tests")
 public class TransferTest extends OpMode {
     Transfer transfer;
@@ -33,20 +33,6 @@ public class TransferTest extends OpMode {
         }
 
         joinedTelemetry.addLine("Transfer Motor State: " + transfer.getMotorState().toString());
-
-        joinedTelemetry.addLine();
-
-        joinedTelemetry.addLine("(Servo) Y/A/B - Forwards/Reverse/Stop");
-
-        if(gamepad1.y) {
-            transfer.setServoState(Transfer.ServoState.FORWARD);
-        } else if(gamepad1.b) {
-            transfer.setServoState(Transfer.ServoState.REVERSE);
-        } else if(gamepad1.a) {
-            transfer.setServoState(Transfer.ServoState.STOP);
-        }
-
-        joinedTelemetry.addLine("Transfer Servo State: " + transfer.getServoState().toString());
 
         joinedTelemetry.update();
     }

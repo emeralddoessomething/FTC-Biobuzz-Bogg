@@ -18,7 +18,7 @@ public class Intake {
         STOP
     }
     public Intake(HardwareMap hardwareMap) {
-        String hardwareMapName = "lowerIntake";
+        String hardwareMapName = "intake";
         DcMotorEx.Direction direction = DcMotorSimple.Direction.REVERSE;
         DcMotorEx.ZeroPowerBehavior zeroPowerBehavior = DcMotor.ZeroPowerBehavior.FLOAT;
 

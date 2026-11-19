@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.SubSystems.Intake;
 
-@Disabled
+//@Disabled
 @TeleOp(name = "Intake Test", group = "Tests")
 public class IntakeTest extends OpMode {
     Intake intake;
