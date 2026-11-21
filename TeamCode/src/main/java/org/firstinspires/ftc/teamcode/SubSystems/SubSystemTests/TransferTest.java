@@ -28,7 +28,7 @@ public class TransferTest extends OpMode {
             transfer.setMotorState(Transfer.MotorState.FORWARD);
         } else if(gamepad1.dpad_down) {
             transfer.setMotorState(Transfer.MotorState.REVERSE);
-        } else if(gamepad1.right_bumper) {
+        } else if(gamepad1.dpad_right) {
             transfer.setMotorState(Transfer.MotorState.STOP);
         }
 

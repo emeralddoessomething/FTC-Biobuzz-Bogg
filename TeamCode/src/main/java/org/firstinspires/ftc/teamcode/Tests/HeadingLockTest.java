@@ -25,10 +25,12 @@ public class HeadingLockTest extends OpMode {
         ALL
     }
 
-    Prompter prompter = new Prompter(this);
+    Prompter prompter;
 
     @Override
     public void init() {
+        prompter = new Prompter(this);
+
         follower = Constants.create(hardwareMap);
 
         prompter.prompt("alliance", new OptionPrompt<>("Alliance", Alliance.RED, Alliance.BLUE))

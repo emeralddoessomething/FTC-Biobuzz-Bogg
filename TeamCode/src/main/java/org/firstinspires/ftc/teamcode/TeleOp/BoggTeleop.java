@@ -26,6 +26,8 @@ import org.firstinspires.ftc.teamcode.Utils.Prism.PrismAnimations;
 import org.firstinspires.ftc.teamcode.Utils.Round;
 import org.firstinspires.ftc.teamcode.Utils.Toggle;
 
+import java.util.concurrent.TimeUnit;
+
 @BulkCaching(mode = LynxModule.BulkCachingMode.MANUAL)
 @TeleOp(name = "Bogg TeleOp", group = "TeleOp")
 public class BoggTeleop extends OpMode {
@@ -42,18 +44,13 @@ public class BoggTeleop extends OpMode {
 
     GoBildaIndicatorLight indicatorLight;
     GoBildaPrismDriver prismDriver;
-    PrismAnimations.Blink redBlink = new PrismAnimations.Blink(Color.RED, Color.TRANSPARENT);
-    PrismAnimations.Blink yellowBlink = new PrismAnimations.Blink(Color.YELLOW, Color.TRANSPARENT);
-    PrismAnimations.Solid redSolid = new PrismAnimations.Solid(Color.RED);
-    PrismAnimations.Solid blank = new PrismAnimations.Solid(Color.TRANSPARENT);
+    PrismAnimations.Blink greenBlink = new PrismAnimations.Blink(Color.GREEN, Color.TRANSPARENT);
 
     enum PrismState {
-        DEFAULT,
-        HEADING_LOCKING,
-        HEADING_LOCKED,
-        RED_BLINK,
         SOLID_RED,
-        RAINBOW
+        SOLID_ORANGE,
+        SOLID_YELLOW,
+        SOLID_GREEN
     }
     PrismState currentPrismState = PrismState.DEFAULT;
 
@@ -103,12 +100,25 @@ public class BoggTeleop extends OpMode {
         Artboard 0 - solid purple
         Artboard 1 - solid yellow
         Artboard 2 - sold red
-        Artboard 3 - RGB (rainbow)
+        Artboard 3 - solid orange
+        Artboard 4 - rainbow
          */
+
+//        purple default
+//        green when in heading locking mode
+//                yellow solid 30s
+//                orange solid 15s
+//                red solid 5s
+
+
         prismDriver = hardwareMap.get(GoBildaPrismDriver.class, "prism");
         prismDriver.loadAnimationsFromArtboard(GoBildaPrismDriver.Artboard.ARTBOARD_0);
         currentPrismState = PrismState.DEFAULT;
-        yellowBlink.setPeriod(500); // ms, so 250ms yellow 250ms off
+//        yellowBlink.setPeriod(1000); // ms, so 250ms yellow 250ms off
+//        redBlink.setPeriod(1000);
+
+//        redBlink.setPeriod(1000, TimeUnit.MILLISECONDS); // todo - ask gobilda people, can't go under 2s for some reason
+//        yellowBlink.setPeriod(1000, TimeUnit.MILLISECONDS);
 
         // Heading Locking
         headingLock = new HeadingLock(hardwareMap, follower);
@@ -161,10 +171,10 @@ public class BoggTeleop extends OpMode {
         PrismState targetState;
         if (timeRemaining <= 5.0) {
             targetState = PrismState.SOLID_RED;
-        } else if (timeRemaining <= 15.0 && timeRemaining > 10.0) {
-            targetState = PrismState.RED_BLINK;
-        } else if (timeRemaining <= 30.0 && timeRemaining > 25.0) {
-            targetState = PrismState.RED_BLINK;
+        } else if (timeRemaining <= 15.0) {
+            targetState =
+        } else if (timeRemaining <= 30.0) {
+            targetState = PrismState.ORANGE_BLINK;
         } else if(headingLocking) {
             targetState = PrismState.HEADING_LOCKING;
         } else if (headingLocked) {
@@ -179,11 +189,13 @@ public class BoggTeleop extends OpMode {
                 case RED_BLINK:
                     prismDriver.insertAndUpdateAnimation(GoBildaPrismDriver.LayerHeight.LAYER_1, redBlink);
                     break;
+                case ORANGE_BLINK:
+                    prismDriver.insertAndUpdateAnimation(GoBildaPrismDriver.LayerHeight.LAYER_1, orangeBlink);
                 case SOLID_RED:
                     prismDriver.insertAndUpdateAnimation(GoBildaPrismDriver.LayerHeight.LAYER_1, redSolid);
                     break;
                 case HEADING_LOCKING:
-                    prismDriver.insertAndUpdateAnimation(GoBildaPrismDriver.LayerHeight.LAYER_1, yellowBlink);
+                    prismDriver.insertAndUpdateAnimation(GoBildaPrismDriver.LayerHeight.LAYER_1, greenBlink);
                     break;
                 case HEADING_LOCKED:
                     prismDriver.loadAnimationsFromArtboard(GoBildaPrismDriver.Artboard.ARTBOARD_1);
@@ -219,10 +231,10 @@ public class BoggTeleop extends OpMode {
             shooter.bumpRpm(-100);
         }
 
-        if(gamepad2.right_trigger > 0.1) { // Shooting controls (transfer)
-            transfer.setMotorState(Transfer.MotorState.FORWARD);
-        } else if(gamepad2.left_trigger > 0.1) {
+        if(gamepad2.left_trigger > 0.1) { // Shooting controls (transfer)
             transfer.setMotorState(Transfer.MotorState.REVERSE);
+        } else if(gamepad2.right_trigger > 0.1) {
+            transfer.setMotorState(Transfer.MotorState.FORWARD);
         } else {
             transfer.setMotorState(Transfer.MotorState.STOP);
         }

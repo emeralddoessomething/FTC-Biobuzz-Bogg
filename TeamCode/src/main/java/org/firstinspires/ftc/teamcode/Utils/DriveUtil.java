@@ -57,7 +57,7 @@ public class DriveUtil {
 //            drivePowerMultiplyFactor = Math.abs(gamepad.left_trigger - 1);
 //        }
 
-        double drivePowerMultiplyFactor = 1.0 - (gamepad.left_trigger * 0.8); // todo - test
+        double drivePowerMultiplyFactor = 1.0 - (gamepad.left_trigger * 0.7); // todo - test
 
         if(!headingLockToggle.isEnabled()) {
             return new DrivePowers(

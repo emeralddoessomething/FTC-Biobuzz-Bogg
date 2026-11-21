@@ -22,7 +22,7 @@ public class Transfer {
 
     public Transfer(HardwareMap hardwareMap) {
         String motorHardwareMapName = "transfer";
-        DcMotorSimple.Direction motorDirection = DcMotorSimple.Direction.FORWARD;
+        DcMotorSimple.Direction motorDirection = DcMotorSimple.Direction.REVERSE;
         DcMotorEx.ZeroPowerBehavior motorZeroPowerBehaviour = DcMotor.ZeroPowerBehavior.BRAKE;
         transferMotor = hardwareMap.get(DcMotor.class, motorHardwareMapName);
         transferMotor.setDirection(motorDirection);

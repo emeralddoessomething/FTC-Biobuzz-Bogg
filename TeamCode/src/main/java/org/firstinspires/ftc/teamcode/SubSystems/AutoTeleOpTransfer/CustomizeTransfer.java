@@ -8,14 +8,18 @@ import com.skeletonarmy.marrow.prompts.ValuePrompt;
 
 import org.firstinspires.ftc.teamcode.Auto.SelectivePark;
 
+import java.util.Objects;
+
 @TeleOp(name = "Customize Transfer", group = "Transfer")
 public class CustomizeTransfer extends OpMode {
-    Prompter prompter = new Prompter(this);
+    Prompter prompter;
 
     @Override
     public void init() {
-        prompter.prompt("alliance", new OptionPrompt<>("Alliance ~ Current: " + TransferClass.alliance.toString(), TransferClass.Alliance.RED, TransferClass.Alliance.BLUE, TransferClass.Alliance.UNKNOWN))
-                .label("Alliance")
+        prompter = new Prompter(this);
+
+        prompter.prompt("alliance", new OptionPrompt<>("Alliance ~ Current: " + Objects.toString(TransferClass.alliance, "None"), TransferClass.Alliance.RED, TransferClass.Alliance.BLUE, TransferClass.Alliance.UNKNOWN))
+            .label("Alliance")
             .showSummary()
             .onComplete(this::save);
     }

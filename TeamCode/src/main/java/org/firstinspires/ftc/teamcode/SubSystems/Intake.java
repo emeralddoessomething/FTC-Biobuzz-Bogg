@@ -10,8 +10,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class Intake {
     DcMotor intake;
     State state = State.STOP;
-    public static double intakePower = 0.7;
-    public static double outtakePower = -0.7;
+    public static double intakePower = 0.67;
+    public static double outtakePower = -0.67;
     public enum State{
         INTAKE,
         OUTTAKE,

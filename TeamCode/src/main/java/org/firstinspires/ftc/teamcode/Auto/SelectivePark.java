@@ -15,6 +15,8 @@ import com.skeletonarmy.marrow.prompts.Prompter;
 import com.skeletonarmy.marrow.prompts.ValuePrompt;
 
 import org.firstinspires.ftc.teamcode.Pedro.Constants;
+import org.firstinspires.ftc.teamcode.SubSystems.AutoTeleOpTransfer.TransferClass;
+import org.firstinspires.ftc.teamcode.SubSystems.Transfer;
 import org.firstinspires.ftc.teamcode.TurtleTracer.ParkingPaths;
 import org.firstinspires.ftc.teamcode.Utils.HtmlTelemetryUtil;
 
@@ -37,7 +39,7 @@ public class SelectivePark extends OpMode {
     private Pose exposedBluePark = poseFactory.of(133.75, 48, 0); // todo - heading doesn't really matter
 
     private Path selectedPath;
-    Prompter prompter = new Prompter(this);
+    Prompter prompter;
 
     enum Alliance {
         RED,
@@ -62,6 +64,8 @@ public class SelectivePark extends OpMode {
 
     @Override
     public void init() {
+        prompter = new Prompter(this);
+
         follower = Constants.create(hardwareMap);
 
 //        telemetry.setDisplayFormat(Telemetry.DisplayFormat.HTML);
@@ -95,6 +99,8 @@ public class SelectivePark extends OpMode {
         Alliance alliance = prompter.get("alliance");
 
         if (alliance == Alliance.RED) {
+            TransferClass.alliance = TransferClass.Alliance.RED;
+
             RedPositions pos = prompter.get("position");
             RedParking park = prompter.get("parkingPosition");
 
@@ -104,6 +110,8 @@ public class SelectivePark extends OpMode {
                 selectedPath = (park == RedParking.RED_CORNER_PARKING) ? ParkingPaths.redScoringToCornerRedPark : ParkingPaths.redScoringToExposedRedPark;
             }
         } else if (alliance == Alliance.BLUE) {
+            TransferClass.alliance = TransferClass.Alliance.BLUE;
+
             BluePositions pos = prompter.get("position");
             BlueParking park = prompter.get("parkingPosition");
 
@@ -137,6 +145,7 @@ public class SelectivePark extends OpMode {
         switch(step) {
             case -1:
                 telemetry.addLine("Finished Auto");
+                TransferClass.setRobotPose(follower.pose());
                 break;
             case 0:
                 telemetry.addLine("Waiting for start delay: " + delayTimer.seconds() + "s / " + prompter.get("startDelay") + "s");

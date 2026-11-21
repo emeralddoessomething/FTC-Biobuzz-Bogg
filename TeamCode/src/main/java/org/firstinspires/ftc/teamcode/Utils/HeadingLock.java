@@ -44,7 +44,7 @@ public class HeadingLock {
     Status status = Status.INIT;
 
     // Vision
-    public static double visionP = 0.01;
+    public static double visionP = 0.02;
     public static double visionD = 0.0;
     public static double visionTarget = 0.0;
     public static double visionTimeout = 0.25; // seconds
