@@ -273,6 +273,8 @@ public class SelectiveShoot extends OpMode {
         LynxUtil.clearBulkCache(hardwareMap);
 
         follower.update();
+        TransferClass.setRobotPose(follower.pose());
+
         shooter.update();
 
 //        telemetry.addLine("Target RPM: " + shooter.getTargetRpm());
@@ -327,7 +329,7 @@ public class SelectiveShoot extends OpMode {
                             if (detection instanceof AprilTagClusterDetection) {
                                 AprilTagClusterDetection cluster = (AprilTagClusterDetection) detection;
 
-                                if (cluster.metadata != null && expectedClusterName.equalsIgnoreCase(cluster.metadata.name) && detection.ftcPose != null && Math.abs(detection.ftcPose.roll) < 90.0) {
+                                if (cluster.metadata != null && expectedClusterName.equalsIgnoreCase(cluster.metadata.name) && detection.ftcPose != null && Math.abs(detection.ftcPose.roll) < 90.0) { // todo - CHANGE, maybe get rid of the roll test???
                                     expectedAprilTagFound = true;
                                     break;
                                 } // l o n g

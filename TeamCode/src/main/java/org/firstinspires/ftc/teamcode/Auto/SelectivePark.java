@@ -142,6 +142,9 @@ public class SelectivePark extends OpMode {
     public void loop() {
         LynxUtil.clearBulkCache(hardwareMap);
 
+        follower.update();
+        TransferClass.setRobotPose(follower.pose());
+
         switch(step) {
             case -1:
                 telemetry.addLine("Finished Auto");
@@ -170,7 +173,5 @@ public class SelectivePark extends OpMode {
             telemetry.addLine(HtmlTelemetryUtil.constructString(HtmlTelemetryUtil.Size.h1, HtmlTelemetryUtil.Colors.red, "Time Based Auto Park"));
             step = 1;
         }
-
-        follower.update();
     }
 }
