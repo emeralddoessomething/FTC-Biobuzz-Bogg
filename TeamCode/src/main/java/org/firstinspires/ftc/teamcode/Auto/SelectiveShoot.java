@@ -265,6 +265,9 @@ public class SelectiveShoot extends OpMode {
         autoTimer.reset();
         wait.reset();
 
+        aprilTagWaitStarted = false;
+        expectedAprilTagFound = false;
+
         shooter.getControllerObject().reset();
     }
 
@@ -310,57 +313,59 @@ public class SelectiveShoot extends OpMode {
                 }
                 break;
             case 1:
-                follower.follow(pathQueue.poll());
-                telemetry.addLine("Shooting... (Waiting for speed)");
-                nextStep();
+                if (!aprilTagWaitStarted) {
+                    stepTimer.reset();
+                    aprilTagWaitStarted = true;
+                }
+
+                List<AprilTagDetection> detections = headingLock.getAprilTagProcessor().getDetections();
+                String expectedClusterName = getExpectedAprilTagClusterName();
+
+                if (detections != null) {
+                    for (AprilTagDetection detection : detections) {
+                        if (detection instanceof AprilTagClusterDetection) {
+                            AprilTagClusterDetection cluster = (AprilTagClusterDetection) detection;
+
+                            if (cluster.metadata != null && expectedClusterName.equalsIgnoreCase(cluster.metadata.name) && detection.ftcPose != null && Math.abs(detection.ftcPose.roll) < 90.0) { // todo - CHANGE, maybe get rid of the roll test???
+                                expectedAprilTagFound = true;
+                                break;
+                            } // l o n g
+                        }
+                    }
+                }
+
+                double aprilTagTimeout = prompter.get("aprilTagTimeout");
+                boolean aprilTagTimedOut = stepTimer.seconds() >= aprilTagTimeout;
+
+                telemetry.addLine("Expected AprilTag cluster: " + expectedClusterName);
+                telemetry.addLine("Scorable target found: " + expectedAprilTagFound);
+                telemetry.addLine("AprilTag wait: " + Round.round(stepTimer.seconds(), 2) + "s / " + aprilTagTimeout + "s");
+
+                if (expectedAprilTagFound || aprilTagTimedOut) {
+                    follower.follow(pathQueue.poll());
+                    telemetry.addLine("Shooting... (Navigating to shoot pose)");
+                    nextStep();
+                } else {
+                    telemetry.addLine("Waiting for AprilTag detection at start position...");
+                }
                 break;
             case 2:
                 if (!follower.isBusy()) {
-                    if (!aprilTagWaitStarted) {
-                        stepTimer.reset();
-                        aprilTagWaitStarted = true;
-                    }
-
-                    List<AprilTagDetection> detections = headingLock.getAprilTagProcessor().getDetections();
-                    String expectedClusterName = getExpectedAprilTagClusterName();
-
-                    if (detections != null) {
-                        for (AprilTagDetection detection : detections) {
-                            if (detection instanceof AprilTagClusterDetection) {
-                                AprilTagClusterDetection cluster = (AprilTagClusterDetection) detection;
-
-                                if (cluster.metadata != null && expectedClusterName.equalsIgnoreCase(cluster.metadata.name) && detection.ftcPose != null && Math.abs(detection.ftcPose.roll) < 90.0) { // todo - CHANGE, maybe get rid of the roll test???
-                                    expectedAprilTagFound = true;
-                                    break;
-                                } // l o n g
-                            }
-                        }
-                    }
-
-                    double aprilTagTimeout = prompter.get("aprilTagTimeout");
-                    boolean aprilTagTimedOut = stepTimer.seconds() >= aprilTagTimeout;
-
-                    telemetry.addLine("Expected AprilTag cluster: " + expectedClusterName);
-                    telemetry.addLine("Scorable target found: " + expectedAprilTagFound);
-                    telemetry.addLine("AprilTag wait: " + Round.round(stepTimer.seconds(), 2) + "s / " + aprilTagTimeout + "s");
-
-                    if (expectedAprilTagFound || aprilTagTimedOut) {
-                        if (shooter.isReady()) {
-                            telemetry.addLine("Shooting... (Running transfer and intake)");
-                            transfer.setMotorState(Transfer.MotorState.FORWARD);
-                            intake.setState(Intake.State.INTAKE);
-                            telemetry.addLine("Shooting... (Waiting 3s)");
-                            nextStep();
-                        } else {
-                            telemetry.addLine("Shooting... (Waiting for speed)");
-                        }
+                    if (shooter.isReady()) {
+                        telemetry.addLine("Shooting... (Running transfer and intake)");
+                        transfer.setMotorState(Transfer.MotorState.FORWARD);
+                        intake.setState(Intake.State.INTAKE);
+                        telemetry.addLine("Shooting... (Waiting 2s)");
+                        nextStep();
                     } else {
-                        telemetry.addLine("Shooting (Waiting for apriltag");
+                        telemetry.addLine("Shooting... (Waiting for speed)");
                     }
+                } else {
+                    telemetry.addLine("Navigating to shoot pose...");
                 }
                 break;
             case 3:
-                if(wait.waitSeconds(3.0)) {
+                if(wait.waitSeconds(2.0)) {
                     telemetry.addLine("Picking next path...");
                     nextStep();
                 }
@@ -391,7 +396,7 @@ public class SelectiveShoot extends OpMode {
                 }
                 break;
             case 6:
-                if(!follower.isBusy() || stepTimer.seconds() >= 3) {
+                if(!follower.isBusy() || stepTimer.seconds() >= 2) {
                     telemetry.addLine("Navigating back to shooting position");
                     follower.follow(pathQueue.poll());
                     nextStep();
@@ -408,7 +413,7 @@ public class SelectiveShoot extends OpMode {
                 }
                 break;
             case 8:
-                if(wait.waitSeconds(3.0)) {
+                if(wait.waitSeconds(2.0)) {
                     telemetry.addLine("Parking");
                     nextStep();
                 }
