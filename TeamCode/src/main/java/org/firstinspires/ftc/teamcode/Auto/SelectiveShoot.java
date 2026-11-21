@@ -16,6 +16,12 @@ import com.skeletonarmy.marrow.prompts.BooleanPrompt;
 import com.skeletonarmy.marrow.prompts.OptionPrompt;
 import com.skeletonarmy.marrow.prompts.Prompter;
 import com.skeletonarmy.marrow.prompts.ValuePrompt;
+import com.skeletonarmy.marrow.weaver.PathConfig;
+import com.skeletonarmy.marrow.weaver.PathResult;
+import com.skeletonarmy.marrow.weaver.PedroPathingConverter;
+import com.skeletonarmy.marrow.weaver.Weaver;
+import com.skeletonarmy.marrow.zones.Point;
+import com.skeletonarmy.marrow.zones.PolygonZone;
 
 import org.firstinspires.ftc.teamcode.Pedro.Constants;
 import org.firstinspires.ftc.teamcode.SubSystems.AutoTeleOpTransfer.TransferClass;
@@ -42,6 +48,7 @@ import java.util.Queue;
 @Autonomous(name = "Selective Shoot", group = "Auto")
 public class SelectiveShoot extends OpMode {
     private Follower follower;
+    private Weaver weaver;
     private Queue<Path> pathQueue = new ArrayDeque<>();
     private ElapsedTime delayTimer;
     private ElapsedTime autoTimer;
@@ -72,6 +79,9 @@ public class SelectiveShoot extends OpMode {
     private Pose redScoringShoot = poseFactory.of(60, 108, -90);
     private Pose blueScoringShoot = poseFactory.of(84, 108, -90); // up by default
 
+    private PolygonZone hiveRedSide = new PolygonZone(new Point(46.5, 92), new Point(46.5, 52), new Point(49, 52), new Point(49, 92));
+    private PolygonZone hiveBlueSide = new PolygonZone(new Point(95, 92), new Point(95, 52), new Point(97.5, 52), new Point(97.5, 92));
+
     Prompter prompter;
 
     enum Alliance {
@@ -100,6 +110,15 @@ public class SelectiveShoot extends OpMode {
         prompter = new Prompter(this);
 
         follower = Constants.create(hardwareMap);
+
+        double robotWidth = 18; // Inches
+        double robotLength = 18; // Inches
+        double clearance = 2; // Inches
+
+        Weaver.setConfig(new PathConfig()
+            .robotWidth(robotWidth)
+            .robotHeight(robotLength)
+            .clearance(clearance));
 
         intake = new Intake(hardwareMap);
         shooter = new Shooter(hardwareMap);
@@ -262,6 +281,16 @@ public class SelectiveShoot extends OpMode {
 //        telemetry.addLine("Motor Enabled: " + shooter.getMotorObject().isMotorEnabled());
 
         switch (step) {
+            case -2:
+                telemetry.addLine("Autoparking...");
+                transfer.setMotorState(Transfer.MotorState.STOP);
+                intake.setState(Intake.State.STOP);
+                shooter.setTargetRpm(0);
+
+                if(!follower.isBusy()) {
+                    step = -1;
+                }
+                break;
             case -1:
                 transfer.setMotorState(Transfer.MotorState.STOP);
                 intake.setState(Intake.State.STOP);
@@ -392,6 +421,18 @@ public class SelectiveShoot extends OpMode {
                 }
                 break;
         }
+
+        if(autoTimer.seconds() >= 25 && (boolean) prompter.get("timeAutoPark") && step != -2 && getSelectedParkingPose().distance(follower.pose()) > 5) {
+            PathResult result = Weaver.builder()
+                .start(new Point(follower.pose().x(), follower.pose().y(), follower.pose().heading()))
+                .addTarget(new Point(getSelectedParkingPose().x(), getSelectedParkingPose().y()))
+                .addObstacle(hiveRedSide)
+                .addObstacle(hiveBlueSide)
+                .build();
+
+            follower.follow(PedroPathingConverter.toPath(result));
+            nextStep(-2);
+        }
     }
 
     @Override
@@ -411,6 +452,18 @@ public class SelectiveShoot extends OpMode {
         }
 
         return ""; // todo - ??? change?
+    }
+
+    private Pose getSelectedParkingPose() {
+        Alliance alliance = prompter.get("alliance");
+
+        if (alliance == Alliance.RED) {
+            RedParking parking = prompter.get("parkingPosition");
+            return parking == RedParking.RED_CORNER_PARKING ? cornerRedPark : exposedRedPark;
+        } else {
+            BlueParking parking = prompter.get("parkingPosition");
+            return parking == BlueParking.BLUE_CORNER_PARKING ? cornerBluePark : exposedBluePark;
+        }
     }
 
     private void nextStep() {
