@@ -26,8 +26,6 @@ import org.firstinspires.ftc.teamcode.Utils.Prism.PrismAnimations;
 import org.firstinspires.ftc.teamcode.Utils.Round;
 import org.firstinspires.ftc.teamcode.Utils.Toggle;
 
-import java.util.concurrent.TimeUnit;
-
 @BulkCaching(mode = LynxModule.BulkCachingMode.MANUAL)
 @TeleOp(name = "Bogg TeleOp", group = "TeleOp")
 public class BoggTeleop extends OpMode {
@@ -44,7 +42,7 @@ public class BoggTeleop extends OpMode {
 
     GoBildaIndicatorLight indicatorLight;
     GoBildaPrismDriver prismDriver;
-    PrismAnimations.Blink greenBlink = new PrismAnimations.Blink(Color.GREEN, Color.TRANSPARENT);
+    PrismAnimations.Solid greenSolid = new PrismAnimations.Solid(Color.GREEN);
 
     enum PrismState {
         SOLID_PURPLE,
@@ -193,7 +191,7 @@ public class BoggTeleop extends OpMode {
                     prismDriver.loadAnimationsFromArtboard(GoBildaPrismDriver.Artboard.ARTBOARD_3);
                     break;
                 case BLINK_GREEN:
-                    prismDriver.insertAndUpdateAnimation(GoBildaPrismDriver.LayerHeight.LAYER_1, greenBlink);
+                    prismDriver.insertAndUpdateAnimation(GoBildaPrismDriver.LayerHeight.LAYER_1, greenSolid);
                     break;
             }
         }
