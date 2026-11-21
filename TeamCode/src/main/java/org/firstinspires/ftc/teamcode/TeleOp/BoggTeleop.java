@@ -47,12 +47,13 @@ public class BoggTeleop extends OpMode {
     PrismAnimations.Blink greenBlink = new PrismAnimations.Blink(Color.GREEN, Color.TRANSPARENT);
 
     enum PrismState {
+        SOLID_PURPLE,
         SOLID_RED,
         SOLID_ORANGE,
         SOLID_YELLOW,
-        SOLID_GREEN
+        BLINK_GREEN
     }
-    PrismState currentPrismState = PrismState.DEFAULT;
+    PrismState currentPrismState = PrismState.SOLID_PURPLE;
 
     ElapsedTime matchTimer = new ElapsedTime();
 
@@ -113,12 +114,7 @@ public class BoggTeleop extends OpMode {
 
         prismDriver = hardwareMap.get(GoBildaPrismDriver.class, "prism");
         prismDriver.loadAnimationsFromArtboard(GoBildaPrismDriver.Artboard.ARTBOARD_0);
-        currentPrismState = PrismState.DEFAULT;
-//        yellowBlink.setPeriod(1000); // ms, so 250ms yellow 250ms off
-//        redBlink.setPeriod(1000);
-
-//        redBlink.setPeriod(1000, TimeUnit.MILLISECONDS); // todo - ask gobilda people, can't go under 2s for some reason
-//        yellowBlink.setPeriod(1000, TimeUnit.MILLISECONDS);
+        currentPrismState = PrismState.SOLID_PURPLE;
 
         // Heading Locking
         headingLock = new HeadingLock(hardwareMap, follower);
@@ -165,43 +161,39 @@ public class BoggTeleop extends OpMode {
 
         // Underglow
         double timeRemaining = 120.0 - matchTimer.seconds();
-        boolean headingLocked = headingLockToggle.isEnabled() && (headingLock.getStatus() == HeadingLock.Status.VISION_LOCKED || headingLock.getStatus() == HeadingLock.Status.ODO_LOCKED);
-        boolean headingLocking = headingLockToggle.isEnabled() && (headingLock.getStatus() == HeadingLock.Status.VISION_LOCKING || headingLock.getStatus() == HeadingLock.Status.ODO_LOCKING);
 
         PrismState targetState;
-        if (timeRemaining <= 5.0) {
+
+        if (headingLockToggle.isEnabled()) {
+            targetState = PrismState.BLINK_GREEN;
+        } else if (timeRemaining <= 5.0) {
             targetState = PrismState.SOLID_RED;
         } else if (timeRemaining <= 15.0) {
-            targetState =
+            targetState = PrismState.SOLID_ORANGE;
         } else if (timeRemaining <= 30.0) {
-            targetState = PrismState.ORANGE_BLINK;
-        } else if(headingLocking) {
-            targetState = PrismState.HEADING_LOCKING;
-        } else if (headingLocked) {
-            targetState = PrismState.HEADING_LOCKED;
+            targetState = PrismState.SOLID_YELLOW;
         } else {
-            targetState = PrismState.DEFAULT;
+            targetState = PrismState.SOLID_PURPLE;
         }
 
-        if (targetState != currentPrismState) { // I do it this way because i2c writes are an expensive operation, so this makes sure that I don't have to do one every loop
+        if (targetState != currentPrismState) {
             currentPrismState = targetState;
+
             switch (currentPrismState) {
-                case RED_BLINK:
-                    prismDriver.insertAndUpdateAnimation(GoBildaPrismDriver.LayerHeight.LAYER_1, redBlink);
+                case SOLID_PURPLE:
+                    prismDriver.loadAnimationsFromArtboard(GoBildaPrismDriver.Artboard.ARTBOARD_0);
                     break;
-                case ORANGE_BLINK:
-                    prismDriver.insertAndUpdateAnimation(GoBildaPrismDriver.LayerHeight.LAYER_1, orangeBlink);
-                case SOLID_RED:
-                    prismDriver.insertAndUpdateAnimation(GoBildaPrismDriver.LayerHeight.LAYER_1, redSolid);
-                    break;
-                case HEADING_LOCKING:
-                    prismDriver.insertAndUpdateAnimation(GoBildaPrismDriver.LayerHeight.LAYER_1, greenBlink);
-                    break;
-                case HEADING_LOCKED:
+                case SOLID_YELLOW:
                     prismDriver.loadAnimationsFromArtboard(GoBildaPrismDriver.Artboard.ARTBOARD_1);
                     break;
-                case DEFAULT:
-                    prismDriver.loadAnimationsFromArtboard(GoBildaPrismDriver.Artboard.ARTBOARD_0);
+                case SOLID_RED:
+                    prismDriver.loadAnimationsFromArtboard(GoBildaPrismDriver.Artboard.ARTBOARD_2);
+                    break;
+                case SOLID_ORANGE:
+                    prismDriver.loadAnimationsFromArtboard(GoBildaPrismDriver.Artboard.ARTBOARD_3);
+                    break;
+                case BLINK_GREEN:
+                    prismDriver.insertAndUpdateAnimation(GoBildaPrismDriver.LayerHeight.LAYER_1, greenBlink);
                     break;
             }
         }
