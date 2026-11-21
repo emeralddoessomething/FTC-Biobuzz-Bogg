@@ -17,7 +17,6 @@ import com.skeletonarmy.marrow.prompts.OptionPrompt;
 import com.skeletonarmy.marrow.prompts.Prompter;
 import com.skeletonarmy.marrow.prompts.ValuePrompt;
 
-import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.Pedro.Constants;
 import org.firstinspires.ftc.teamcode.SubSystems.AutoTeleOpTransfer.TransferClass;
 import org.firstinspires.ftc.teamcode.SubSystems.Intake;
@@ -25,11 +24,17 @@ import org.firstinspires.ftc.teamcode.SubSystems.Shooter;
 import org.firstinspires.ftc.teamcode.SubSystems.Transfer;
 import org.firstinspires.ftc.teamcode.TurtleTracer.GardenPaths;
 import org.firstinspires.ftc.teamcode.TurtleTracer.ParkingPaths;
+import org.firstinspires.ftc.teamcode.Utils.HeadingLock;
+import org.firstinspires.ftc.teamcode.Utils.HtmlTelemetryUtil;
 import org.firstinspires.ftc.teamcode.Utils.Prism.GoBildaPrismDriver;
 import org.firstinspires.ftc.teamcode.Utils.Round;
 import org.firstinspires.ftc.teamcode.Utils.Wait;
+import org.firstinspires.ftc.vision.apriltag.AprilTagClusterDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.ArrayDeque;
+import java.util.List;
 import java.util.Queue;
 
 @BulkCaching(mode = LynxModule.BulkCachingMode.MANUAL)
@@ -40,12 +45,17 @@ public class SelectiveShoot extends OpMode {
     private Queue<Path> pathQueue = new ArrayDeque<>();
     private ElapsedTime delayTimer;
     private ElapsedTime autoTimer;
+    private ElapsedTime stepTimer;
     private Wait wait = new Wait();
     private int step = 0;
+
+    private boolean aprilTagWaitStarted = false;
+    private boolean expectedAprilTagFound = false;
 
     Intake intake;
     Shooter shooter;
     Transfer transfer;
+    HeadingLock headingLock;
     GoBildaPrismDriver prismDriver;
 
     private PoseFactory poseFactory = PoseFactory.degrees();
@@ -95,6 +105,7 @@ public class SelectiveShoot extends OpMode {
         shooter = new Shooter(hardwareMap);
         shooter.setTargetRpm(3000);
         transfer = new Transfer(hardwareMap);
+        headingLock = new HeadingLock(hardwareMap, follower);
         prismDriver = hardwareMap.get(GoBildaPrismDriver.class, "prism");
         prismDriver.loadAnimationsFromArtboard(GoBildaPrismDriver.Artboard.ARTBOARD_4);
 
@@ -125,8 +136,8 @@ public class SelectiveShoot extends OpMode {
                 .prompt("startDelay", new ValuePrompt<>("Start delay (seconds) before first action is taken", Double.class, 0.0, 20.0, 0.0, 0.5))
                 .label("Start Delay (s)")
 
-                .prompt("timeAutoShoot", new BooleanPrompt("Time Based Auto Shoot? (7s left waiting for aTag)", true))
-                .label("Time Based Auto Shoot (7s left)")
+                .prompt("aprilTagTimeout", new ValuePrompt<>("AprilTag Shooting Detection Timeout (s)", Double.class, 0.0, 20.0, 7.0, 1.0))
+                .label("April Tag Timeout (s)")
 
                 .prompt("timeAutoPark", new BooleanPrompt("Time Based Auto Park? (5s left)", true))
                 .label("Time Based Auto Park (5s left)")
@@ -219,6 +230,7 @@ public class SelectiveShoot extends OpMode {
     @Override
     public void init_loop() {
         prompter.run();
+        headingLock.configureVisionPortal();
     }
 
     @Override
@@ -229,6 +241,7 @@ public class SelectiveShoot extends OpMode {
 
         delayTimer = new ElapsedTime();
         autoTimer = new ElapsedTime();
+        stepTimer = new ElapsedTime();
         delayTimer.reset();
         autoTimer.reset();
         wait.reset();
@@ -262,30 +275,63 @@ public class SelectiveShoot extends OpMode {
                 if(delayTimer.seconds() >= (double) prompter.get("startDelay")) {
                     telemetry.clearAll();
                     telemetry.addLine("Navigating to shoot pose");
-                    step++;
+                    nextStep();
                 }
                 break;
             case 1:
                 follower.follow(pathQueue.poll());
                 telemetry.addLine("Shooting... (Waiting for speed)");
-                step++;
+                nextStep();
                 break;
             case 2:
-                if(!follower.isBusy()) {
-                    if(shooter.isReady()) {
-                        telemetry.addLine("Shooting... (Running transfer and intake)");
-                        transfer.setMotorState(Transfer.MotorState.FORWARD);
-                        intake.setState(Intake.State.INTAKE);
-                        telemetry.addLine("Shooting... (Waiting 5s)");
+                if (!follower.isBusy()) {
+                    if (!aprilTagWaitStarted) {
+                        stepTimer.reset();
+                        aprilTagWaitStarted = true;
+                    }
 
-                        step++;
+                    List<AprilTagDetection> detections = headingLock.getAprilTagProcessor().getDetections();
+                    String expectedClusterName = getExpectedAprilTagClusterName();
+
+                    if (detections != null) {
+                        for (AprilTagDetection detection : detections) {
+                            if (detection instanceof AprilTagClusterDetection) {
+                                AprilTagClusterDetection cluster = (AprilTagClusterDetection) detection;
+
+                                if (cluster.metadata != null && expectedClusterName.equalsIgnoreCase(cluster.metadata.name) && detection.ftcPose != null && Math.abs(detection.ftcPose.roll) < 90.0) {
+                                    expectedAprilTagFound = true;
+                                    break;
+                                } // l o n g
+                            }
+                        }
+                    }
+
+                    double aprilTagTimeout = prompter.get("aprilTagTimeout");
+                    boolean aprilTagTimedOut = stepTimer.seconds() >= aprilTagTimeout;
+
+                    telemetry.addLine("Expected AprilTag cluster: " + expectedClusterName);
+                    telemetry.addLine("Scorable target found: " + expectedAprilTagFound);
+                    telemetry.addLine("AprilTag wait: " + Round.round(stepTimer.seconds(), 2) + "s / " + aprilTagTimeout + "s");
+
+                    if (expectedAprilTagFound || aprilTagTimedOut) {
+                        if (shooter.isReady()) {
+                            telemetry.addLine("Shooting... (Running transfer and intake)");
+                            transfer.setMotorState(Transfer.MotorState.FORWARD);
+                            intake.setState(Intake.State.INTAKE);
+                            telemetry.addLine("Shooting... (Waiting 3s)");
+                            nextStep();
+                        } else {
+                            telemetry.addLine("Shooting... (Waiting for speed)");
+                        }
+                    } else {
+                        telemetry.addLine("Shooting (Waiting for apriltag");
                     }
                 }
                 break;
             case 3:
                 if(wait.waitSeconds(3.0)) {
                     telemetry.addLine("Picking next path...");
-                    step++;
+                    nextStep();
                 }
                 break;
             case 4:
@@ -300,24 +346,24 @@ public class SelectiveShoot extends OpMode {
                     telemetry.addLine("Navigating to garden");
                 }
 
-                step++;
+                nextStep();
                 break;
             case 5:
                 if(!follower.isBusy()) {
                     if(prompter.get("intakeFromGarden")) {
                         telemetry.addLine("Ramming to garden");
                         follower.follow(pathQueue.poll());
-                        step++;
+                        nextStep();
                     } else {
-                        step = -1;
+                        nextStep(-1);
                     }
                 }
                 break;
             case 6:
-                if(!follower.isBusy()) {
+                if(!follower.isBusy() || stepTimer.seconds() >= 3) {
                     telemetry.addLine("Navigating back to shooting position");
                     follower.follow(pathQueue.poll());
-                    step++;
+                    nextStep();
                 }
                 break;
             case 7:
@@ -326,25 +372,54 @@ public class SelectiveShoot extends OpMode {
                         telemetry.addLine("Shooting... (Running transfer and intake)");
                         transfer.setMotorState(Transfer.MotorState.FORWARD);
                         intake.setState(Intake.State.INTAKE);
-                        step++;
+                        nextStep();
                     }
                 }
                 break;
             case 8:
                 if(wait.waitSeconds(3.0)) {
                     telemetry.addLine("Parking");
-                    step++;
+                    nextStep();
                 }
                 break;
             case 9:
                 follower.follow(pathQueue.poll());
-                step++;
+                nextStep();
                 break;
             case 10:
                 if(!follower.isBusy()) {
-                    step = -1;
+                    nextStep(-1);
                 }
                 break;
         }
+    }
+
+    @Override
+    public void stop() {
+        headingLock.getVisionPortal().close();
+    }
+
+    private String getExpectedAprilTagClusterName() {
+        Alliance alliance = prompter.get("alliance");
+
+        if (alliance == Alliance.RED) {
+            RedPositions position = prompter.get("position");
+            return position == RedPositions.RED_AUDIENCE_DEFAULT_UP ? "RED AUDIENCE" : "RED SCORING";
+        } else if(alliance == Alliance.BLUE) {
+            BluePositions position = prompter.get("position");
+            return position == BluePositions.BLUE_AUDIENCE_DEFAULT_DOWN ? "BLUE AUDIENCE" : "BLUE SCORING";
+        }
+
+        return ""; // todo - ??? change?
+    }
+
+    private void nextStep() {
+        stepTimer.reset();
+        step++;
+    }
+
+    private void nextStep(int step) {
+        stepTimer.reset();
+        this.step = step;
     }
 }
