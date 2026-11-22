@@ -16,6 +16,7 @@ import com.skeletonarmy.marrow.prompts.BooleanPrompt;
 import com.skeletonarmy.marrow.prompts.OptionPrompt;
 import com.skeletonarmy.marrow.prompts.Prompter;
 import com.skeletonarmy.marrow.prompts.ValuePrompt;
+import com.skeletonarmy.marrow.weaver.HeadingPolicy;
 import com.skeletonarmy.marrow.weaver.PathConfig;
 import com.skeletonarmy.marrow.weaver.PathResult;
 import com.skeletonarmy.marrow.weaver.PedroPathingConverter;
@@ -55,6 +56,8 @@ public class SelectiveShoot extends OpMode {
     private ElapsedTime stepTimer;
     private Wait wait = new Wait();
     private int step = 0;
+
+    private boolean thing = true;
 
     private boolean aprilTagWaitStarted = false;
     private boolean expectedAprilTagFound = false;
@@ -161,12 +164,17 @@ public class SelectiveShoot extends OpMode {
                 .prompt("timeAutoPark", new BooleanPrompt("Time Based Auto Park? (5s left)", true))
                 .label("Time Based Auto Park (5s left)")
 
+                .prompt("aprilTagOtherSide", new BooleanPrompt("Apriltag Based Nav to Other Side? (1.5 tip auto)", false))
+                .label("Apriltag Nav to Other Side")
+
                 .showSummary()
                 .onComplete(this::pickRoute);
     }
 
     private void pickRoute() {
         SelectiveShoot.Alliance alliance = prompter.get("alliance");
+
+        thing = prompter.get("aprilTagOtherSide");
 
         if (alliance == SelectiveShoot.Alliance.RED) {
             TransferClass.alliance = TransferClass.Alliance.RED;
@@ -399,11 +407,189 @@ public class SelectiveShoot extends OpMode {
                 if(!follower.isBusy() || stepTimer.seconds() >= 2) {
                     telemetry.addLine("Navigating back to shooting position");
                     follower.follow(pathQueue.poll());
-                    nextStep();
+                    nextStep(99);
+                }
+                break;
+            case 99:
+                if(!follower.isBusy()) {
+                    nextStep(7);
                 }
                 break;
             case 7:
+                boolean hiveTipped = true;
+
+                if (prompter.get("aprilTagOtherSide")) {
+                    List<AprilTagDetection> detectionsAgain = headingLock.getAprilTagProcessor().getDetections();
+                    String expectedClusterNameAgain = getExpectedAprilTagClusterName();
+
+                        if (detectionsAgain != null) {
+                            for (AprilTagDetection detection : detectionsAgain) {
+                                if (detection instanceof AprilTagClusterDetection) {
+                                    AprilTagClusterDetection cluster = (AprilTagClusterDetection) detection;
+
+                                    if (cluster.metadata != null && expectedClusterNameAgain.equalsIgnoreCase(cluster.metadata.name) && detection.ftcPose != null && Math.abs(detection.ftcPose.roll) < 90.0) {
+                                        hiveTipped = false;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                } else {
+                    hiveTipped = false;
+                }
+
+                if (!hiveTipped) {
+                    nextStep();
+                } else {
+                    pathQueue.clear();
+
+                    if (prompter.get("alliance") == SelectiveShoot.Alliance.BLUE) {
+                        SelectiveShoot.BluePositions pos = prompter.get("position");
+
+                        if (pos == BluePositions.BLUE_AUDIENCE_DEFAULT_DOWN) {
+                            pathQueue.offer(
+                                PedroPathingConverter.toPath(Weaver.builder()
+                                    .start(new Point(follower.pose().x(), follower.pose().y(), follower.pose().heading()))
+                                    .addTarget(new Point(blueScoringShoot.x(), blueScoringShoot.y(), Math.toRadians(-90)), HeadingPolicy.LOCKED)
+                                    .addObstacle(hiveRedSide)
+                                    .addObstacle(hiveBlueSide)
+                                    .build()
+                                )
+                            );
+
+                            if (prompter.get("parkingPosition") == BlueParking.BLUE_EXPOSED_PARKING) {
+                                pathQueue.offer(
+                                    PedroPathingConverter.toPath(Weaver.builder()
+                                        .start(new Point(blueScoringShoot.x(), blueScoringShoot.y(), Math.toRadians(-90)))
+                                        .addTarget(new Point(exposedBluePark.x(), exposedBluePark.y()))
+                                        .addObstacle(hiveRedSide)
+                                        .addObstacle(hiveBlueSide)
+                                        .build()
+                                    )
+                                );
+                            } else if (prompter.get("parkingPosition") == BlueParking.BLUE_CORNER_PARKING) {
+                                pathQueue.offer(
+                                    PedroPathingConverter.toPath(Weaver.builder()
+                                        .start(new Point(blueScoringShoot.x(), blueScoringShoot.y(), Math.toRadians(-90)))
+                                        .addTarget(new Point(cornerBluePark.x(), cornerBluePark.y()))
+                                        .addObstacle(hiveRedSide)
+                                        .addObstacle(hiveBlueSide)
+                                        .build()
+                                    )
+                                );
+                            }
+                        } else if (pos == BluePositions.BLUE_SCORING_DEFAULT_UP) {
+                            pathQueue.offer(
+                                PedroPathingConverter.toPath(Weaver.builder()
+                                    .start(new Point(follower.pose().x(), follower.pose().y(), follower.pose().heading()))
+                                    .addTarget(new Point(blueAudienceShoot.x(), blueAudienceShoot.y(), Math.toRadians(90)), HeadingPolicy.LOCKED)
+                                    .addObstacle(hiveRedSide)
+                                    .addObstacle(hiveBlueSide)
+                                    .build()
+                                )
+                            );
+
+                            if (prompter.get("parkingPosition") == BlueParking.BLUE_EXPOSED_PARKING) {
+                                pathQueue.offer(
+                                    PedroPathingConverter.toPath(Weaver.builder()
+                                        .start(new Point(blueAudienceShoot.x(), blueAudienceShoot.y(), Math.toRadians(90)))
+                                        .addTarget(new Point(exposedBluePark.x(), exposedBluePark.y()))
+                                        .addObstacle(hiveRedSide)
+                                        .addObstacle(hiveBlueSide)
+                                        .build()
+                                    )
+                                );
+                            } else if (prompter.get("parkingPosition") == BlueParking.BLUE_CORNER_PARKING) {
+                                pathQueue.offer(
+                                    PedroPathingConverter.toPath(Weaver.builder()
+                                        .start(new Point(blueAudienceShoot.x(), blueAudienceShoot.y(), Math.toRadians(90)))
+                                        .addTarget(new Point(cornerBluePark.x(), cornerBluePark.y()))
+                                        .addObstacle(hiveRedSide)
+                                        .addObstacle(hiveBlueSide)
+                                        .build()
+                                    )
+                                );
+                            }
+                        }
+                    } else if (prompter.get("alliance") == SelectiveShoot.Alliance.RED) {
+                        SelectiveShoot.RedPositions pos = prompter.get("position");
+
+                        if (pos == RedPositions.RED_AUDIENCE_DEFAULT_UP) {
+                            pathQueue.offer(
+                                PedroPathingConverter.toPath(Weaver.builder()
+                                    .start(new Point(follower.pose().x(), follower.pose().y(), follower.pose().heading()))
+                                    .addTarget(new Point(redScoringShoot.x(), redScoringShoot.y(), Math.toRadians(-90)), HeadingPolicy.LOCKED)
+                                    .addObstacle(hiveRedSide)
+                                    .addObstacle(hiveBlueSide)
+                                    .build()
+                                )
+                            );
+
+                            if (prompter.get("parkingPosition") == RedParking.RED_EXPOSED_PARKING) {
+                                pathQueue.offer(
+                                    PedroPathingConverter.toPath(Weaver.builder()
+                                        .start(new Point(redScoringShoot.x(), redScoringShoot.y(), Math.toRadians(-90)))
+                                        .addTarget(new Point(exposedRedPark.x(), exposedRedPark.y()))
+                                        .addObstacle(hiveRedSide)
+                                        .addObstacle(hiveBlueSide)
+                                        .build()
+                                    )
+                                );
+                            } else if (prompter.get("parkingPosition") == RedParking.RED_CORNER_PARKING) {
+                                pathQueue.offer(
+                                    PedroPathingConverter.toPath(Weaver.builder()
+                                        .start(new Point(redScoringShoot.x(), redScoringShoot.y(), Math.toRadians(-90)))
+                                        .addTarget(new Point(cornerRedPark.x(), cornerRedPark.y()))
+                                        .addObstacle(hiveRedSide)
+                                        .addObstacle(hiveBlueSide)
+                                        .build()
+                                    )
+                                );
+                            }
+                        } else if (pos == RedPositions.RED_SCORING_DEFAULT_DOWN) {
+                            pathQueue.offer(
+                                PedroPathingConverter.toPath(Weaver.builder()
+                                    .start(new Point(follower.pose().x(), follower.pose().y(), follower.pose().heading()))
+                                    .addTarget(new Point(redAudienceShoot.x(), redAudienceShoot.y(), Math.toRadians(90)), HeadingPolicy.LOCKED)
+                                    .addObstacle(hiveRedSide)
+                                    .addObstacle(hiveBlueSide)
+                                    .build()
+                                )
+                            );
+
+                            if (prompter.get("parkingPosition") == RedParking.RED_EXPOSED_PARKING) {
+                                pathQueue.offer(
+                                    PedroPathingConverter.toPath(Weaver.builder()
+                                        .start(new Point(redAudienceShoot.x(), redAudienceShoot.y(), Math.toRadians(90)))
+                                        .addTarget(new Point(exposedRedPark.x(), exposedRedPark.y()))
+                                        .addObstacle(hiveRedSide)
+                                        .addObstacle(hiveBlueSide)
+                                        .build()
+                                    )
+                                );
+                            } else if (prompter.get("parkingPosition") == RedParking.RED_CORNER_PARKING) {
+                                pathQueue.offer(
+                                    PedroPathingConverter.toPath(Weaver.builder()
+                                        .start(new Point(redAudienceShoot.x(), redAudienceShoot.y(), Math.toRadians(90)))
+                                        .addTarget(new Point(cornerRedPark.x(), cornerRedPark.y()))
+                                        .addObstacle(hiveRedSide)
+                                        .addObstacle(hiveBlueSide)
+                                        .build()
+                                    )
+                                );
+                            }
+                        }
+                    }
+
+                    follower.follow(pathQueue.poll());
+                    nextStep();
+                }
+                break;
+            case 8:
                 if (!follower.isBusy()) {
+                    if(thing) {
+                        nextStep(999);
+                    }
                     if (shooter.isReady()) {
                         telemetry.addLine("Shooting... (Running transfer and intake)");
                         transfer.setMotorState(Transfer.MotorState.FORWARD);
@@ -412,17 +598,23 @@ public class SelectiveShoot extends OpMode {
                     }
                 }
                 break;
-            case 8:
+            case 999:
+                if(wait.waitSeconds(3)) {
+                    thing = false;
+                    nextStep(8);
+                }
+                break;
+            case 9:
                 if(wait.waitSeconds(2.0)) {
                     telemetry.addLine("Parking");
                     nextStep();
                 }
                 break;
-            case 9:
+            case 10:
                 follower.follow(pathQueue.poll());
                 nextStep();
                 break;
-            case 10:
+            case 11:
                 if(!follower.isBusy()) {
                     nextStep(-1);
                 }
